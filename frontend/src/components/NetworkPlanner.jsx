@@ -289,10 +289,10 @@ export default function NetworkPlanner({ onPlanApproved }) {
             <div style={{ padding: '24px', backgroundColor: 'var(--bg-surface-subtle)' }}>
               {/* Outer VPC Boundary */}
               <div style={{
-                border: '1.5px solid #94A3B8',
+                border: '1.5px solid var(--border-color)',
                 borderRadius: 6,
                 padding: '20px',
-                backgroundColor: '#FFFFFF',
+                backgroundColor: 'var(--bg-surface)',
                 position: 'relative'
               }}>
                 {/* VPC Header Badge */}
@@ -305,18 +305,18 @@ export default function NetworkPlanner({ onPlanApproved }) {
                   marginBottom: 18
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       AWS VPC
                     </span>
-                    <span className="font-mono" style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13px' }}>
+                    <span className="font-mono" style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '13.5px' }}>
                       {validationResult.vpc_cidr}
                     </span>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                       ({validationResult.vpc_total_ips.toLocaleString()} Total Addresses, Netmask: {validationResult.vpc_netmask})
                     </span>
                   </div>
 
-                  <span className="status-pill status-pill-neutral">Target Region: us-east-1</span>
+                  <span className="status-pill status-pill-neutral font-mono">TARGET REGION: US-EAST-1</span>
                 </div>
 
                 {/* Internet Gateway Node */}
@@ -331,9 +331,9 @@ export default function NetworkPlanner({ onPlanApproved }) {
                   fontSize: '12px',
                   marginBottom: 16
                 }}>
-                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>igw-cloudops-lab</span>
+                  <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>igw-cloudops-lab</span>
                   <span className="status-pill status-pill-success" style={{ fontSize: '10px' }}>Attached</span>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '11.5px' }}>Route Target: 0.0.0.0/0</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 500 }}>Route Target: 0.0.0.0/0</span>
                 </div>
 
                 {/* Subnet Nodes Grid */}
@@ -344,18 +344,18 @@ export default function NetworkPlanner({ onPlanApproved }) {
                       <div
                         key={idx}
                         style={{
-                          border: '1px solid var(--border-color)',
+                          border: '1.5px solid var(--border-color)',
                           borderRadius: 6,
-                          padding: '14px',
-                          backgroundColor: '#FFFFFF'
+                          padding: '16px',
+                          backgroundColor: 'var(--bg-surface-subtle)'
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                           <div>
-                            <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>
+                            <div style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text-primary)' }}>
                               {sub.name}
                             </div>
-                            <div className="font-mono" style={{ fontSize: '12px', color: 'var(--accent-primary)', fontWeight: 500 }}>
+                            <div className="font-mono" style={{ fontSize: '12.5px', color: 'var(--accent-text)', fontWeight: 600, marginTop: 2 }}>
                               {sub.cidr}
                             </div>
                           </div>
@@ -365,38 +365,38 @@ export default function NetworkPlanner({ onPlanApproved }) {
                         </div>
 
                         {/* Technical Metadata Rows */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, fontSize: '12px', color: 'var(--text-secondary)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 7, fontSize: '12.5px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Available Host Capacity:</span>
-                            <span className="font-mono" style={{ fontWeight: 600, color: 'var(--status-success)' }}>
+                            <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Available Host Capacity:</span>
+                            <span className="font-mono" style={{ fontWeight: 700, color: 'var(--status-success)' }}>
                               {sub.usable_ips} addresses
                             </span>
                           </div>
 
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span>AWS Reserved Addresses:</span>
-                            <span className="font-mono" style={{ color: 'var(--text-muted)' }}>
+                            <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>AWS Reserved Addresses:</span>
+                            <span className="font-mono" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
                               5 (.0-.3, .255)
                             </span>
                           </div>
 
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Usable Host IP Range:</span>
-                            <span className="font-mono" style={{ fontSize: '11px', color: 'var(--text-primary)' }}>
+                            <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Usable Host IP Range:</span>
+                            <span className="font-mono" style={{ fontSize: '11.5px', color: 'var(--text-primary)', fontWeight: 600 }}>
                               {sub.first_usable_ip} - {sub.last_usable_ip}
                             </span>
                           </div>
 
-                          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: 5, marginTop: 2 }}>
-                            <span>Default Route Target:</span>
-                            <span className="font-mono" style={{ fontSize: '11px', fontWeight: 600, color: isPublic ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: 7, marginTop: 3 }}>
+                            <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Default Route Target:</span>
+                            <span className="font-mono" style={{ fontSize: '11.5px', fontWeight: 700, color: isPublic ? 'var(--accent-text)' : 'var(--text-primary)' }}>
                               {isPublic ? '0.0.0.0/0 -> igw' : '10.0.0.0/16 Local'}
                             </span>
                           </div>
 
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Security Group:</span>
-                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                            <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Security Group:</span>
+                            <span style={{ fontSize: '11.5px', color: 'var(--text-primary)', fontWeight: 600 }}>
                               {isPublic ? 'web-sg (TCP 80, 443)' : 'default-internal-sg'}
                             </span>
                           </div>
