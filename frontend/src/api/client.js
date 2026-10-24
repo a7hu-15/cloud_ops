@@ -113,3 +113,80 @@ export async function getInfrastructureInventory() {
   return res.json();
 }
 
+// =============================================================================
+// Troubleshooting & Recovery Workflow API
+// =============================================================================
+export async function getWorkflowSession() {
+  const res = await fetch(`${API_BASE}/api/workflow/session`);
+  if (!res.ok) throw new Error('Failed to fetch workflow session');
+  return res.json();
+}
+
+export async function initWorkflowSession(labTemplateId = 'standard_two_tier', mode = 'simulation') {
+  const res = await fetch(`${API_BASE}/api/workflow/init`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lab_template_id: labTemplateId, mode })
+  });
+  if (!res.ok) throw new Error('Failed to initialize workflow session');
+  return res.json();
+}
+
+export async function injectWorkflowFault(faultId) {
+  const res = await fetch(`${API_BASE}/api/workflow/inject-fault`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fault_id: faultId })
+  });
+  if (!res.ok) throw new Error(`Failed to inject fault ${faultId}`);
+  return res.json();
+}
+
+export async function runWorkflowDiagnostics() {
+  const res = await fetch(`${API_BASE}/api/workflow/run-diagnostics`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error('Failed to run workflow diagnostics and RCA');
+  return res.json();
+}
+
+export async function applyWorkflowRemediation(confirmationToken, executeTerraformApply = false) {
+  const res = await fetch(`${API_BASE}/api/workflow/apply-remediation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      remediation_id: 'auto',
+      confirmation_token: confirmationToken,
+      execute_terraform_apply: executeTerraformApply
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Remediation application rejected');
+  }
+  return res.json();
+}
+
+export async function verifyWorkflowRecovery() {
+  const res = await fetch(`${API_BASE}/api/workflow/verify-recovery`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error('Failed to verify workflow recovery');
+  return res.json();
+}
+
+export async function getWorkflowReportMarkdown() {
+  const res = await fetch(`${API_BASE}/api/workflow/report/markdown`);
+  if (!res.ok) throw new Error('Failed to retrieve experiment report');
+  return res.json();
+}
+
+export async function getPacketTrace(targetPort = 443, originIp = '198.51.100.25', targetProtocol = 'tcp') {
+  const res = await fetch(`${API_BASE}/api/network/packet-trace?target_port=${targetPort}&origin_ip=${encodeURIComponent(originIp)}&target_protocol=${encodeURIComponent(targetProtocol)}`);
+  if (!res.ok) throw new Error('Failed to evaluate packet trace');
+  return res.json();
+}
+
+

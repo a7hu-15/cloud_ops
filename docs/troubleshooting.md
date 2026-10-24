@@ -77,3 +77,32 @@ IGW is attached, but external ping or curl fails immediately with `Network is un
    }
    ```
 2. Run plan and apply.
+
+---
+
+## 5. Scenario: Invalid CIDR Boundary (Host Bits Set)
+### Symptom
+Subnet creation fails immediately during validation with `CIDR-001: Host bits set in CIDR prefix`.
+
+### Diagnostic Workflow
+1. Input a non-boundary CIDR such as `10.0.1.5/24` into the Network Planner or Recovery Engine.
+2. Observe finding status: `FAIL (Severity: HIGH)`.
+3. **Evidence Observed**: `CIDR '10.0.1.5/24' has host bits set. For prefix /24, host bits must be 0 (e.g., 10.0.1.0/24)`.
+4. **Technical Explanation**: In IPv4 CIDR notation, a prefix length of `/24` designates 24 network bits and 8 host bits. Any non-zero bits in the host portion represent an individual IP address, not an allocatable network block.
+
+### Remediation
+1. Re-align the base address to the true network boundary `10.0.1.0/24`.
+
+---
+
+## 6. The 7-Step Automated Recovery Workflow
+
+Rather than performing manual investigation across disconnected tools, users can trigger the automated **Recovery Engine**:
+1. **Lab Selection**: Load the structured baseline architecture.
+2. **Fault Injection**: Introduce any of the 5 reproducible failure scenarios.
+3. **Diagnostic Assessment**: Run all 10 checks and collect evidence.
+4. **Deterministic RCA**: Generate a root-cause finding with confidence percentage and primary failure layer.
+5. **Remediation Review**: Inspect the proposed Terraform HCL diff and security implications.
+6. **Recovery Verification**: Apply the fix with confirmation token `CONFIRM_REMEDIATION` and verify that the original finding transitions to `RESOLVED`.
+7. **Report Export**: Download the markdown or JSON experiment report.
+

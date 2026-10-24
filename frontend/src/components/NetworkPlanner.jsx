@@ -4,8 +4,8 @@ import { validateNetwork } from '../api/client';
 export default function NetworkPlanner({ onPlanApproved }) {
   const [vpcCidr, setVpcCidr] = useState('10.0.0.0/16');
   const [subnets, setSubnets] = useState([
-    { name: 'public-subnet', cidr: '10.0.1.0/24' },
-    { name: 'private-subnet', cidr: '10.0.2.0/24' }
+    { name: 'public-subnet', cidr: '10.0.1.0/24', routeTarget: 'igw' },
+    { name: 'private-subnet', cidr: '10.0.2.0/24', routeTarget: 'local' }
   ]);
   const [loading, setLoading] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -24,7 +24,7 @@ export default function NetworkPlanner({ onPlanApproved }) {
 
   const addSubnet = () => {
     const nextIdx = subnets.length + 1;
-    setSubnets([...subnets, { name: `subnet-${nextIdx}`, cidr: `10.0.${nextIdx}.0/24` }]);
+    setSubnets([...subnets, { name: `subnet-${nextIdx}`, cidr: `10.0.${nextIdx}.0/24`, routeTarget: 'local' }]);
   };
 
   const removeSubnet = (index) => {
@@ -53,20 +53,20 @@ export default function NetworkPlanner({ onPlanApproved }) {
     if (presetName === 'standard') {
       setVpcCidr('10.0.0.0/16');
       setSubnets([
-        { name: 'public-subnet', cidr: '10.0.1.0/24' },
-        { name: 'private-subnet', cidr: '10.0.2.0/24' }
+        { name: 'public-subnet', cidr: '10.0.1.0/24', routeTarget: 'igw' },
+        { name: 'private-subnet', cidr: '10.0.2.0/24', routeTarget: 'local' }
       ]);
     } else if (presetName === 'overlap') {
       setVpcCidr('10.0.0.0/16');
       setSubnets([
-        { name: 'web-tier-a', cidr: '10.0.1.0/24' },
-        { name: 'web-tier-b', cidr: '10.0.1.128/25' }
+        { name: 'web-tier-a', cidr: '10.0.1.0/24', routeTarget: 'igw' },
+        { name: 'web-tier-b', cidr: '10.0.1.128/25', routeTarget: 'local' }
       ]);
     } else if (presetName === 'outside') {
       setVpcCidr('10.0.0.0/16');
       setSubnets([
-        { name: 'public-subnet', cidr: '10.0.1.0/24' },
-        { name: 'external-subnet', cidr: '192.168.10.0/24' }
+        { name: 'public-subnet', cidr: '10.0.1.0/24', routeTarget: 'igw' },
+        { name: 'external-subnet', cidr: '192.168.10.0/24', routeTarget: 'local' }
       ]);
     }
   };
@@ -171,7 +171,7 @@ export default function NetworkPlanner({ onPlanApproved }) {
                     placeholder="subnet-name"
                   />
                 </div>
-                <div style={{ flex: 1.1 }}>
+                <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: 3, textTransform: 'uppercase' }}>
                     CIDR Block
                   </label>
@@ -182,6 +182,20 @@ export default function NetworkPlanner({ onPlanApproved }) {
                     onChange={(e) => handleSubnetChange(idx, 'cidr', e.target.value)}
                     placeholder="10.0.1.0/24"
                   />
+                </div>
+                <div style={{ flex: 0.9 }}>
+                  <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: 3, textTransform: 'uppercase' }}>
+                    Route Next-Hop
+                  </label>
+                  <select
+                    className="input-text font-mono"
+                    value={sub.routeTarget || 'local'}
+                    onChange={(e) => handleSubnetChange(idx, 'routeTarget', e.target.value)}
+                    style={{ height: 34, fontSize: '11px', padding: '0 6px' }}
+                  >
+                    <option value="igw">0.0.0.0/0 (IGW)</option>
+                    <option value="local">Local Only</option>
+                  </select>
                 </div>
                 {subnets.length > 1 && (
                   <button
@@ -404,7 +418,9 @@ export default function NetworkPlanner({ onPlanApproved }) {
             {/* Subnets Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
               {subnets.map((sub, idx) => {
-                const isPublic = sub.name.toLowerCase().includes('public');
+                // AWS Engineering Standard: Subnet is public IF AND ONLY IF its route table targets an IGW
+                const isPublic = (sub.routeTarget || 'local') === 'igw';
+                const nameHasPublic = sub.name.toLowerCase().includes('public');
                 const matchingResult = validationResult?.subnets?.find((s) => s.name === sub.name);
                 const usableIps = matchingResult?.usable_ips || 251;
                 const ipRange = matchingResult ? `${matchingResult.first_usable_ip} - ${matchingResult.last_usable_ip}` : '10.0.X.4 - 10.0.X.254';
@@ -429,9 +445,16 @@ export default function NetworkPlanner({ onPlanApproved }) {
                           {sub.cidr}
                         </div>
                       </div>
-                      <span className={`status-tag ${isPublic ? 'status-tag-accent' : 'status-tag-neutral'}`}>
-                        {isPublic ? 'Public Tier' : 'Private Tier'}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                        <span className={`status-tag ${isPublic ? 'status-tag-accent' : 'status-tag-neutral'}`}>
+                          {isPublic ? 'Public Tier' : 'Private Tier'}
+                        </span>
+                        {!isPublic && nameHasPublic && (
+                          <span style={{ fontSize: '9.5px', color: 'var(--status-warning)', fontWeight: 600 }}>
+                            Route: Local (No IGW)
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Metadata Table */}

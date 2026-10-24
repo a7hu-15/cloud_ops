@@ -22,6 +22,26 @@ from .diagnostics import (
     get_active_faults,
     check_aws_credentials_available
 )
+from .network_model import (
+    NetworkLabModel,
+    create_standard_two_tier_lab,
+    trace_inbound_packet,
+    PacketPathTrace
+)
+from .workflow_engine import (
+    WorkflowSession,
+    WorkflowInitRequest,
+    FaultInjectRequest,
+    ApplyRemediationRequest,
+    initialize_workflow_session,
+    get_current_workflow_session,
+    inject_workflow_fault,
+    run_workflow_diagnostics,
+    apply_workflow_remediation,
+    verify_workflow_recovery,
+    generate_workflow_markdown_report
+)
+from .rca_engine import RcaAnalysisReport
 
 app = FastAPI(
     title="CloudOps Lab API",
@@ -370,4 +390,105 @@ def get_infrastructure_inventory():
             }
         ]
     }
+
+
+# ------------------------------------------------------------------------------
+# Packet Path Evaluation (Engineering Analysis Standard)
+# ------------------------------------------------------------------------------
+@app.get("/api/network/packet-trace", response_model=PacketPathTrace, tags=["Network Analysis"])
+def evaluate_packet_trace(
+    origin_ip: str = "198.51.100.25",
+    target_port: int = 443,
+    target_protocol: str = "tcp",
+    target_subnet_id: Optional[str] = None
+):
+    """
+    Evaluates packet flow hop-by-hop from client through IGW, Route Table, and SG to Host ENI.
+    """
+    lab = create_standard_two_tier_lab(active_faults=get_active_faults())
+    return trace_inbound_packet(
+        lab=lab,
+        origin_ip=origin_ip,
+        target_port=target_port,
+        target_protocol=target_protocol,
+        target_subnet_id=target_subnet_id
+    )
+
+
+# ------------------------------------------------------------------------------
+# Troubleshooting & Recovery Workflow Engine (The Differentiating Feature)
+# ------------------------------------------------------------------------------
+@app.get("/api/workflow/session", response_model=WorkflowSession, tags=["Troubleshooting Workflow"])
+def get_workflow_session_endpoint():
+    """
+    Returns the currently active troubleshooting workflow session.
+    """
+    return get_current_workflow_session()
+
+
+@app.post("/api/workflow/init", response_model=WorkflowSession, tags=["Troubleshooting Workflow"])
+def init_workflow_session_endpoint(req: Optional[WorkflowInitRequest] = None):
+    """
+    Step 1: Select or create network lab environment.
+    """
+    template_id = req.lab_template_id if req else "standard_two_tier"
+    mode = req.mode if req else "simulation"
+    return initialize_workflow_session(lab_template_id=template_id, mode=mode)
+
+
+@app.post("/api/workflow/inject-fault", response_model=WorkflowSession, tags=["Troubleshooting Workflow"])
+def workflow_inject_fault_endpoint(req: FaultInjectRequest):
+    """
+    Step 2: Introduce a controlled, reproducible fault scenario.
+    """
+    return inject_workflow_fault(fault_id=req.fault_id)
+
+
+@app.post("/api/workflow/run-diagnostics", response_model=WorkflowSession, tags=["Troubleshooting Workflow"])
+def workflow_run_diagnostics_endpoint():
+    """
+    Step 3 & 4: Run diagnostic checks and execute deterministic Root-Cause Analysis (RCA).
+    """
+    return run_workflow_diagnostics()
+
+
+@app.post("/api/workflow/apply-remediation", response_model=WorkflowSession, tags=["Troubleshooting Workflow"])
+def workflow_apply_remediation_endpoint(req: ApplyRemediationRequest):
+    """
+    Step 5: Synthesize and apply proposed Terraform remediation with safety authorization.
+    """
+    try:
+        return apply_workflow_remediation(
+            confirmation_token=req.confirmation_token,
+            execute_tf=req.execute_terraform_apply
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
+@app.post("/api/workflow/verify-recovery", response_model=WorkflowSession, tags=["Troubleshooting Workflow"])
+def workflow_verify_recovery_endpoint():
+    """
+    Step 6: Verify recovery by re-evaluating diagnostics and computing before/after diff.
+    """
+    return verify_workflow_recovery()
+
+
+@app.get("/api/workflow/report/markdown", tags=["Troubleshooting Workflow"])
+def get_workflow_markdown_report_endpoint():
+    """
+    Step 7: Compiles and returns the certified experiment report in GitHub Flavored Markdown.
+    """
+    session = get_current_workflow_session()
+    md = generate_workflow_markdown_report(session)
+    return {
+        "markdown": md,
+        "session_id": session.session_id,
+        "mode": session.mode,
+        "timestamp": time.time()
+    }
+
 

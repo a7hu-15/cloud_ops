@@ -14,11 +14,12 @@ CloudOps Lab is an educational and junior-engineer troubleshooting platform for 
 ```
    ┌──────────────────────────────────────────────────────────────┐
    │                   Web Browser (React UI)                     │
-   │  • CIDR Designer & Live Visualizer                           │
+   │  • Unified Troubleshooting & Recovery Engine (7-Step)        │
+   │  • CIDR Designer & Route-Based Subnet Classifier             │
    │  • Terraform Workflow Terminal & Safety Confirmation Modals  │
    │  • Diagnostics Hub & Structured Evidence Drawer              │
    │  • Controlled Misconfiguration & Recovery Playground         │
-   │  • Viva & Technical Knowledge Reference Guide                │
+   │  • AWS Resource Inventory & Packet Path Visualizer           │
    └──────────────────────────────┬───────────────────────────────┘
                                   │ JSON via HTTP (REST)
                                   ▼
@@ -103,3 +104,29 @@ CloudOps Lab is an educational and junior-engineer troubleshooting platform for 
 | **TF-001** | Local CLI | Terraform Engine | Syntax or provider error | Does not prove cloud IAM permissions. |
 | **DRIFT-001** | Plan Review | Cloud State vs IaC | Unplanned changes detected | Manual emergency fixes should not be reverted blindly. |
 | **CONN-001** | Live Test | TCP Reachability | Socket timeout or connection refused | Timeouts can result from ISP, local firewalls, or cloud ACLs. |
+
+---
+
+## 6. Signature Feature: Unified Troubleshooting & Recovery Engine
+
+The platform differentiates itself from raw AWS CLI or Terraform dashboards through an evidence-based, deterministic 7-step remediation pipeline implemented across three backend engines:
+
+### A. Structured Network Model (`network_model.py`)
+- **Route-Based Subnet Tier Classification**: Instead of relying on naming heuristics (e.g. `name.contains('public')`), `classify_subnet_tier()` dynamically inspects the subnet's associated `RouteTableModel`. A subnet is classified as `PUBLIC` *if and only if* its route table possesses an active default route `0.0.0.0/0` pointing to an attached `InternetGatewayModel`.
+- **Hop-by-Hop Packet Evaluator**: `trace_inbound_packet()` simulates an ingress packet across 4 architectural layers: Client Edge -> Internet Gateway -> Route Table -> Security Group -> Host ENI. Returns pass/drop decisions with precise failure layer explanations.
+
+### B. Deterministic Multi-Layer Root-Cause Engine (`rca_engine.py`)
+- Evaluates the holistic diagnostic matrix to pinpoint primary failure layers and discard false positives:
+  - `RCA-SG-MISSING-HTTPS`: Layer 4 security group ingress dropped while route tables and IGWs are healthy.
+  - `RCA-RT-MISSING-DEFAULT`: Layer 3 routing failure causing packets to be trapped inside VPC.
+  - `RCA-IGW-DETACHED`: Cloud edge gateway detachment preventing public ingress/egress.
+  - `RCA-SUBNET-OVERLAP`: Layer 2/3 CIDR address collision preventing subnet allocation.
+  - `RCA-INVALID-CIDR-BOUNDARY`: Host bits set or uncontained CIDR prefix.
+- Generates **Remediation Proposals** containing side-by-side Terraform HCL diffs, security rationale, and rollback precautions.
+
+### C. Workflow & Recovery Verifier (`workflow_engine.py`)
+- Maintains isolated session state across the 7-step lifecycle.
+- Enforces explicit confirmation tokens (`CONFIRM_REMEDIATION`) prior to mutating infrastructure models.
+- Re-executes the diagnostic suite against post-remediation state to produce verified before/after comparison diffs (`resolved_findings` and `remaining_findings`).
+- Generates audit-grade Markdown and JSON reports for engineering review.
+

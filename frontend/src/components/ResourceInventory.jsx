@@ -1,15 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { getInfrastructureInventory } from '../api/client';
+import { getInfrastructureInventory, getPacketTrace } from '../api/client';
 
 export default function ResourceInventory() {
   const [inventory, setInventory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTracePort, setActiveTracePort] = useState(443);
+  const [packetTrace, setPacketTrace] = useState(null);
+  const [traceLoading, setTraceLoading] = useState(false);
 
   useEffect(() => {
     loadInventory();
   }, []);
+
+  useEffect(() => {
+    fetchTrace(activeTracePort);
+  }, [activeTracePort]);
+
+  const fetchTrace = async (port) => {
+    setTraceLoading(true);
+    try {
+      const data = await getPacketTrace(port);
+      setPacketTrace(data);
+    } catch (err) {
+      console.error('Failed to trace packet:', err);
+    } finally {
+      setTraceLoading(false);
+    }
+  };
 
   const loadInventory = async () => {
     setLoading(true);
@@ -17,6 +35,7 @@ export default function ResourceInventory() {
     try {
       const data = await getInfrastructureInventory();
       setInventory(data);
+      fetchTrace(activeTracePort);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -286,7 +305,7 @@ export default function ResourceInventory() {
             </div>
           </div>
 
-          {/* Stepper Flow for Packet Path */}
+          {/* Stepper Flow for Packet Path (Backend Evaluated) */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
@@ -296,59 +315,32 @@ export default function ResourceInventory() {
             borderRadius: 6,
             border: '1px solid var(--border-subtle)'
           }}>
-            {/* Hop 1: External Client */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>1. Origin</span>
-              <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>External Client</div>
-              <div className="font-mono" style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>0.0.0.0/0</div>
-              <span className="status-tag status-tag-success" style={{ width: 'fit-content', marginTop: 4 }}>
-                <span className="dot-indicator green"></span> Transmitted
-              </span>
-            </div>
-
-            {/* Hop 2: Internet Gateway */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>2. Edge Entry</span>
-              <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>Internet Gateway</div>
-              <div className="font-mono" style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>{inventory?.internet_gateway?.igw_id}</div>
-              <span className={`status-tag ${igwAttached ? 'status-tag-success' : 'status-tag-error'}`} style={{ width: 'fit-content', marginTop: 4 }}>
-                <span className={`dot-indicator ${igwAttached ? 'green' : 'red'}`}></span>
-                {igwAttached ? 'Accepted' : 'Detached (Drop)'}
-              </span>
-            </div>
-
-            {/* Hop 3: Route Table */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>3. VPC Routing</span>
-              <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>Public Route Table</div>
-              <div className="font-mono" style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>0.0.0.0/0 -&gt; igw</div>
-              <span className={`status-tag ${hasDefaultRoute ? 'status-tag-success' : 'status-tag-error'}`} style={{ width: 'fit-content', marginTop: 4 }}>
-                <span className={`dot-indicator ${hasDefaultRoute ? 'green' : 'red'}`}></span>
-                {hasDefaultRoute ? 'Routable' : 'No Default Route'}
-              </span>
-            </div>
-
-            {/* Hop 4: Security Group */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>4. Security Ingress</span>
-              <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>{sg?.group_name}</div>
-              <div className="font-mono" style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>TCP Port {activeTracePort}</div>
-              <span className={`status-tag ${isPortAllowed ? 'status-tag-success' : 'status-tag-error'}`} style={{ width: 'fit-content', marginTop: 4 }}>
-                <span className={`dot-indicator ${isPortAllowed ? 'green' : 'red'}`}></span>
-                {isPortAllowed ? 'Rule Allowed' : 'Blocked (Drop)'}
-              </span>
-            </div>
-
-            {/* Hop 5: Destination Host */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>5. Host ENI</span>
-              <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>Web EC2 Target</div>
-              <div className="font-mono" style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>10.0.1.10</div>
-              <span className={`status-tag ${isTraceSuccess ? 'status-tag-success' : 'status-tag-error'}`} style={{ width: 'fit-content', marginTop: 4 }}>
-                <span className={`dot-indicator ${isTraceSuccess ? 'green' : 'red'}`}></span>
-                {isTraceSuccess ? 'Packet Delivered' : 'Connection Timeout'}
-              </span>
-            </div>
+            {packetTrace && packetTrace.hops ? (
+              packetTrace.hops.map((hop) => {
+                const isPass = hop.action === 'PASS';
+                return (
+                  <div key={hop.hop_number} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      {hop.hop_number}. {hop.component}
+                    </span>
+                    <div className="font-mono" style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-primary)' }}>
+                      {hop.identifier}
+                    </div>
+                    <span className={`status-tag ${isPass ? 'status-tag-success' : 'status-tag-error'}`} style={{ width: 'fit-content', marginTop: 4 }}>
+                      <span className={`dot-indicator ${isPass ? 'green' : 'red'}`}></span>
+                      {hop.action === 'PASS' ? 'Accepted' : 'Dropped'}
+                    </span>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4 }}>
+                      {hop.reason}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div style={{ padding: '20px', color: 'var(--text-muted)', fontSize: '12px' }}>
+                Evaluating packet hops...
+              </div>
+            )}
           </div>
         </div>
       </div>

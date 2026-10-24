@@ -6,10 +6,11 @@ import TerraformRunner from './components/TerraformRunner';
 import DiagnosticsHub from './components/DiagnosticsHub';
 import ResourceInventory from './components/ResourceInventory';
 import FaultInjectionLab from './components/FaultInjectionLab';
+import TroubleshootingWorkflow from './components/TroubleshootingWorkflow';
 import { checkHealth, getLabStatus } from './api/client';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('planner');
+  const [activeTab, setActiveTab] = useState('workflow');
   const [systemHealth, setSystemHealth] = useState(null);
   const [activeFaultCount, setActiveFaultCount] = useState(0);
   const [approvedPlan, setApprovedPlan] = useState(null);
@@ -84,6 +85,10 @@ export default function App() {
           width: '100%',
           margin: '0 auto'
         }}>
+          {activeTab === 'workflow' && (
+            <TroubleshootingWorkflow />
+          )}
+
           {activeTab === 'planner' && (
             <NetworkPlanner onPlanApproved={(plan) => setApprovedPlan(plan)} />
           )}

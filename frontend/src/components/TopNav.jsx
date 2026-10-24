@@ -2,6 +2,7 @@ import React from 'react';
 
 export default function TopNav({ activeTab, onRefresh, isRefreshing, theme, onToggleTheme }) {
   const titles = {
+    workflow: 'Troubleshooting & Recovery Engine (Signature Workflow)',
     planner: 'Network Planner & IPv4 Allocation',
     terraform: 'Terraform Infrastructure Pipeline',
     diagnostics: 'Multi-Tier Diagnostics & Verification',
