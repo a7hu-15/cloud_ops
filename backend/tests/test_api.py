@@ -86,3 +86,15 @@ def test_fault_simulation_toggle():
 
     # Reset
     client.post("/api/lab/simulate-fault", json={"fault_id": "sg_missing_https", "enable": False})
+
+def test_infrastructure_inventory_api():
+    response = client.get("/api/infrastructure/inventory")
+    assert response.status_code == 200
+    data = response.json()
+    assert "vpc" in data
+    assert data["vpc"]["cidr_block"] == "10.0.0.0/16"
+    assert "subnets" in data
+    assert len(data["subnets"]) == 2
+    assert "security_groups" in data
+    assert len(data["security_groups"]) > 0
+

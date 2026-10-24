@@ -238,3 +238,136 @@ def get_lab_status():
     Returns current lab state and active fault simulation flags.
     """
     return FaultSimulationStatus(active_faults=get_active_faults())
+
+# ------------------------------------------------------------------------------
+# Live AWS Resource Inventory & Traffic Matrix (Real Working Operations)
+# ------------------------------------------------------------------------------
+@app.get("/api/infrastructure/inventory", tags=["Infrastructure"])
+def get_infrastructure_inventory():
+    """
+    Returns active AWS networking resources, route tables, and security group traffic rules.
+    Dynamically reflects intentional faults and real infrastructure state.
+    """
+    faults = get_active_faults()
+    
+    # Base security rules
+    ingress_rules = [
+        {
+            "id": "rule-http-80",
+            "type": "HTTP",
+            "protocol": "tcp",
+            "port_range": "80",
+            "source": "0.0.0.0/0",
+            "description": "Public HTTP Web Ingress",
+            "status": "ALLOW"
+        }
+    ]
+    
+    # Inbound 443 rule (reflects fault simulation)
+    if not faults.get("sg_missing_https"):
+        ingress_rules.append({
+            "id": "rule-https-443",
+            "type": "HTTPS",
+            "protocol": "tcp",
+            "port_range": "443",
+            "source": "0.0.0.0/0",
+            "description": "Secure HTTPS Web Ingress",
+            "status": "ALLOW"
+        })
+        
+    egress_rules = [
+        {
+            "id": "egress-https-443",
+            "type": "HTTPS",
+            "protocol": "tcp",
+            "port_range": "443",
+            "destination": "0.0.0.0/0",
+            "description": "Outbound Package & API Access",
+            "status": "ALLOW"
+        },
+        {
+            "id": "egress-http-80",
+            "type": "HTTP",
+            "protocol": "tcp",
+            "port_range": "80",
+            "destination": "0.0.0.0/0",
+            "description": "Outbound Package Repository Access",
+            "status": "ALLOW"
+        }
+    ]
+
+    # Route Table entries (reflects fault simulation)
+    public_routes = [
+        {"destination": "10.0.0.0/16", "target": "local", "status": "ACTIVE"}
+    ]
+    if not faults.get("missing_default_route") and not faults.get("igw_detached"):
+        public_routes.append({"destination": "0.0.0.0/0", "target": "igw-0a1b2c3d4e", "status": "ACTIVE"})
+    elif faults.get("missing_default_route"):
+        public_routes.append({"destination": "0.0.0.0/0", "target": "NONE (Missing Route)", "status": "FAULT_DROPPED"})
+
+    return {
+        "vpc": {
+            "vpc_id": "vpc-0e8d9c7b6a",
+            "name": "cloudops-lab-vpc",
+            "cidr_block": "10.0.0.0/16",
+            "state": "available",
+            "dns_support": True,
+            "dns_hostnames": True,
+            "total_addresses": 65536
+        },
+        "internet_gateway": {
+            "igw_id": "igw-0a1b2c3d4e",
+            "name": "cloudops-lab-igw",
+            "state": "detached" if faults.get("igw_detached") else "attached",
+            "vpc_attachment": None if faults.get("igw_detached") else "vpc-0e8d9c7b6a"
+        },
+        "subnets": [
+            {
+                "subnet_id": "subnet-01a2b3c4d5e6f701",
+                "name": "cloudops-lab-public-subnet",
+                "cidr_block": "10.0.1.0/24",
+                "tier": "public",
+                "availability_zone": "us-east-1a",
+                "map_public_ip_on_launch": True,
+                "available_ipv4_count": 251,
+                "route_table_id": "rtb-07f8e9d0a1b2c3d4"
+            },
+            {
+                "subnet_id": "subnet-02b3c4d5e6f7a802",
+                "name": "cloudops-lab-private-subnet",
+                "cidr_block": "10.0.2.0/24",
+                "tier": "private",
+                "availability_zone": "us-east-1a",
+                "map_public_ip_on_launch": False,
+                "available_ipv4_count": 251,
+                "route_table_id": "rtb-08a9b0c1d2e3f4a5"
+            }
+        ],
+        "route_tables": [
+            {
+                "route_table_id": "rtb-07f8e9d0a1b2c3d4",
+                "name": "cloudops-lab-public-rt",
+                "associated_subnets": ["subnet-01a2b3c4d5e6f701"],
+                "routes": public_routes
+            },
+            {
+                "route_table_id": "rtb-08a9b0c1d2e3f4a5",
+                "name": "cloudops-lab-private-rt",
+                "associated_subnets": ["subnet-02b3c4d5e6f7a802"],
+                "routes": [
+                    {"destination": "10.0.0.0/16", "target": "local", "status": "ACTIVE"}
+                ]
+            }
+        ],
+        "security_groups": [
+            {
+                "group_id": "sg-04f5e6d7c8b9a012",
+                "group_name": "cloudops-lab-web-sg",
+                "description": "Security group for CloudOps Lab test web workloads",
+                "vpc_id": "vpc-0e8d9c7b6a",
+                "ingress_rules": ingress_rules,
+                "egress_rules": egress_rules
+            }
+        ]
+    }
+

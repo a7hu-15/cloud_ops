@@ -1,42 +1,98 @@
-:root {
-  /* Engineering Console Color System */
-  --bg-page: #F5F6F7;
+/* ==============================================================================
+   CloudOps Lab Enterprise Design System
+   Dual Theme Support: Light & Dark
+   Optimized for High-Contrast Text Legibility & Engineering Workflows
+   ============================================================================== */
+
+:root, [data-theme="light"] {
+  --bg-page: #F3F4F6;
   --bg-surface: #FFFFFF;
   --bg-surface-subtle: #F9FAFB;
   --bg-sidebar: #FFFFFF;
-  --bg-hover: #F0F2F5;
+  --bg-hover: #F3F4F6;
   
-  --text-primary: #20262E;
-  --text-secondary: #65717D;
-  --text-muted: #8C9BA8;
+  /* High-Contrast Light Mode Typography (WCAG AAA) */
+  --text-primary: #111827;       /* Very dark slate/charcoal */
+  --text-secondary: #374151;     /* Clearly legible dark grey */
+  --text-muted: #4B5563;         /* Noticeable medium-dark grey */
   
-  --border-color: #DCE1E5;
-  --border-subtle: #EBEFF2;
+  --border-color: #D1D5DB;       /* Crisp border */
+  --border-subtle: #E5E7EB;
   --border-active: #087E8B;
   
-  /* Accent, Status & Functional Colors */
+  /* Restrained Engineering Palette */
   --accent-primary: #087E8B;
   --accent-primary-hover: #06626D;
-  --accent-light: #EDF7F8;
-  --accent-light-border: #B2DFE3;
+  --accent-light: #E0F2FE;
+  --accent-light-border: #7DD3FC;
+  --accent-text: #0369A1;
   
-  --status-success: #027A48;
-  --status-success-bg: #ECFDF3;
-  --status-success-border: #A6F4C5;
+  --status-success: #047857;
+  --status-success-bg: #ECFDF5;
+  --status-success-border: #6EE7B7;
   
-  --status-warning: #946200;
-  --status-warning-bg: #FFFAEB;
-  --status-warning-border: #FEDF89;
+  --status-warning: #B45309;
+  --status-warning-bg: #FFFBEB;
+  --status-warning-border: #FCD34D;
   
-  --status-error: #B42318;
-  --status-error-bg: #FEF3F2;
-  --status-error-border: #FECDCA;
+  --status-error: #B91C1C;
+  --status-error-bg: #FEF2F2;
+  --status-error-border: #FCA5A5;
+
+  --badge-neutral-bg: #E5E7EB;
+  --badge-neutral-text: #1F2937;
+  --badge-neutral-border: #D1D5DB;
+
+  --terminal-bg: #0F172A;
+  --terminal-text: #F8FAFC;
   
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] {
+  --bg-page: #0B0F17;
+  --bg-surface: #131A26;
+  --bg-surface-subtle: #182232;
+  --bg-sidebar: #0F1420;
+  --bg-hover: #1E293B;
   
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
-  --shadow-card: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+  /* High-Contrast Dark Mode Typography */
+  --text-primary: #F9FAFB;       /* Crisp pure white */
+  --text-secondary: #E2E8F0;     /* Clear bright silver */
+  --text-muted: #94A3B8;         /* Readable muted grey */
+  
+  --border-color: #27354A;       /* High-visibility dark border */
+  --border-subtle: #1C2636;
+  --border-active: #38BDF8;
+  
+  --accent-primary: #0EA5E9;
+  --accent-primary-hover: #38BDF8;
+  --accent-light: rgba(14, 165, 233, 0.18);
+  --accent-light-border: rgba(56, 189, 248, 0.4);
+  --accent-text: #38BDF8;
+  
+  --status-success: #34D399;
+  --status-success-bg: rgba(5, 150, 105, 0.2);
+  --status-success-border: rgba(52, 211, 153, 0.4);
+  
+  --status-warning: #FBBF24;
+  --status-warning-bg: rgba(217, 119, 6, 0.2);
+  --status-warning-border: rgba(251, 191, 36, 0.4);
+  
+  --status-error: #F87171;
+  --status-error-bg: rgba(220, 38, 38, 0.2);
+  --status-error-border: rgba(248, 113, 113, 0.4);
+
+  --badge-neutral-bg: #1E293B;
+  --badge-neutral-text: #E2E8F0;
+  --badge-neutral-border: #334155;
+
+  --terminal-bg: #090D14;
+  --terminal-text: #F1F5F9;
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 * {
@@ -48,28 +104,30 @@
 body {
   background-color: var(--bg-page);
   color: var(--text-primary);
-  font-family: var(--font-sans);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Typography helpers */
+/* Typography */
 .font-mono {
-  font-family: var(--font-mono);
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
 }
 
-/* Crisp Cards and Panels */
+/* Enterprise Surface Card */
 .console-card {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   box-shadow: var(--shadow-card);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-/* Standardized Buttons */
+/* Action Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -78,11 +136,10 @@ body {
   padding: 7px 14px;
   border-radius: 6px;
   font-size: 13px;
-  font-weight: 500;
-  font-family: var(--font-sans);
+  font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: all 0.15s ease;
   white-space: nowrap;
   outline: none;
 }
@@ -103,8 +160,8 @@ body {
   border-color: var(--border-color);
 }
 .btn-secondary:hover:not(:disabled) {
-  background-color: var(--bg-surface-subtle);
-  border-color: #B8C2CC;
+  background-color: var(--bg-hover);
+  border-color: var(--border-strong, #9CA3AF);
 }
 
 .btn-danger {
@@ -113,16 +170,15 @@ body {
   border-color: var(--status-error);
 }
 .btn-danger:hover:not(:disabled) {
-  background-color: #911C13;
-  border-color: #911C13;
+  opacity: 0.9;
 }
 
 .btn:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Enterprise Input Fields */
+/* Enterprise Form Inputs */
 .input-control {
   width: 100%;
   height: 36px;
@@ -132,7 +188,7 @@ body {
   border-radius: 6px;
   color: var(--text-primary);
   font-size: 13px;
-  font-family: var(--font-mono);
+  font-family: 'JetBrains Mono', monospace;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -144,18 +200,19 @@ body {
 
 .input-control::placeholder {
   color: var(--text-muted);
+  opacity: 0.85;
 }
 
-/* Technical Status Badges (Never relying on color alone) */
+/* Status Badges */
 .status-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 4px;
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
@@ -178,18 +235,18 @@ body {
 }
 
 .status-pill-neutral {
-  background-color: #F2F4F7;
-  color: #344054;
-  border: 1px solid var(--border-color);
+  background-color: var(--badge-neutral-bg);
+  color: var(--badge-neutral-text);
+  border: 1px solid var(--badge-neutral-border);
 }
 
 .status-pill-accent {
   background-color: var(--accent-light);
-  color: var(--accent-primary);
+  color: var(--accent-text);
   border: 1px solid var(--accent-light-border);
 }
 
-/* Monochromatic status dot */
+/* Status Dot */
 .dot {
   width: 6px;
   height: 6px;
@@ -201,7 +258,7 @@ body {
 .dot-error { background-color: var(--status-error); }
 .dot-neutral { background-color: var(--text-muted); }
 
-/* Table styles */
+/* Data Tables */
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -212,11 +269,12 @@ body {
 .data-table th {
   background-color: var(--bg-surface-subtle);
   color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 12px;
+  font-weight: 700;
+  font-size: 11.5px;
   padding: 10px 14px;
   border-bottom: 1px solid var(--border-color);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .data-table td {
@@ -230,14 +288,14 @@ body {
 }
 
 .data-table tr:hover td {
-  background-color: #FAFAFB;
+  background-color: var(--bg-hover);
 }
 
-/* Terminal Console (Dark inside neutral card) */
+/* Terminal Window */
 .terminal-window {
-  background-color: #12161F;
-  color: #E2E8F0;
-  font-family: var(--font-mono);
+  background-color: var(--terminal-bg);
+  color: var(--terminal-text);
+  font-family: 'JetBrains Mono', monospace;
   font-size: 12.5px;
   line-height: 1.6;
   border-radius: 0 0 6px 6px;
@@ -247,11 +305,11 @@ body {
   max-height: 480px;
 }
 
-/* Modal Backdrop */
+/* Modal Overlay */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(18, 22, 31, 0.55);
+  background-color: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;

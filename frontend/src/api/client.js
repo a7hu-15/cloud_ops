@@ -106,3 +106,10 @@ export async function getLabStatus() {
   const res = await fetch(`${API_BASE}/api/lab/status`);
   return res.json();
 }
+
+export async function getInfrastructureInventory() {
+  const res = await fetch(`${API_BASE}/api/infrastructure/inventory`);
+  if (!res.ok) throw new Error('Failed to retrieve infrastructure inventory');
+  return res.json();
+}
+

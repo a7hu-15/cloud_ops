@@ -4,8 +4,8 @@ import TopNav from './components/TopNav';
 import NetworkPlanner from './components/NetworkPlanner';
 import TerraformRunner from './components/TerraformRunner';
 import DiagnosticsHub from './components/DiagnosticsHub';
+import ResourceInventory from './components/ResourceInventory';
 import FaultInjectionLab from './components/FaultInjectionLab';
-import VivaStudyGuide from './components/VivaStudyGuide';
 import { checkHealth, getLabStatus } from './api/client';
 
 export default function App() {
@@ -14,6 +14,20 @@ export default function App() {
   const [activeFaultCount, setActiveFaultCount] = useState(0);
   const [approvedPlan, setApprovedPlan] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Theme Management: Light & Dark
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('cloudops_theme') || 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('cloudops_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
 
   useEffect(() => {
     fetchHealthAndStatus();
@@ -58,6 +72,8 @@ export default function App() {
           activeTab={activeTab}
           onRefresh={fetchHealthAndStatus}
           isRefreshing={isRefreshing}
+          theme={theme}
+          onToggleTheme={toggleTheme}
         />
 
         {/* Workspace Canvas */}
@@ -80,12 +96,12 @@ export default function App() {
             <DiagnosticsHub />
           )}
 
-          {activeTab === 'faults' && (
-            <FaultInjectionLab onFaultsChanged={(count) => setActiveFaultCount(count)} />
+          {activeTab === 'inventory' && (
+            <ResourceInventory />
           )}
 
-          {activeTab === 'viva' && (
-            <VivaStudyGuide />
+          {activeTab === 'faults' && (
+            <FaultInjectionLab onFaultsChanged={(count) => setActiveFaultCount(count)} />
           )}
         </main>
       </div>
