@@ -33,7 +33,7 @@ export default function FaultInjectionLab({ onFaultsChanged }) {
         onFaultsChanged(count);
       }
 
-      // Re-evaluate diagnostics to show the live outcome
+      // Re-evaluate diagnostics to show live test result
       const diagRes = await runDiagnostics({ forceSimulated: true });
       setScenarioReport((prev) => ({
         ...prev,
@@ -46,67 +46,117 @@ export default function FaultInjectionLab({ onFaultsChanged }) {
     }
   };
 
+  const resetAllFaults = async () => {
+    for (const sc of scenarios) {
+      if (activeFaults[sc.id]) {
+        await toggleSimulatedFault(sc.id, false);
+      }
+    }
+    loadStatus();
+  };
+
   const scenarios = [
     {
+      code: 'EXP-01',
       id: 'sg_missing_https',
-      title: 'Scenario 1: Missing Inbound HTTPS (Port 443) Security Rule',
+      title: 'Omit Inbound HTTPS Authorization (Port 443)',
       checkId: 'SG-001',
-      category: 'Security Group',
-      description: 'Simulates omission of port 443 inbound authorization in the web security group.',
-      impact: 'Browsers connecting via HTTPS hang and experience connection timeout, while port 80 still succeeds.',
-      remediationHcl: 'resource "aws_security_group" "web_sg" {\n  ingress {\n    from_port   = 443\n    to_port     = 443\n    protocol    = "tcp"\n    cidr_blocks = ["0.0.0.0/0"]\n  }\n}'
+      layer: 'Layer 4 / Stateful Security Group',
+      hypothesis: 'Web clients requesting https:// domain will hang indefinitely until connection timeout, while http:// still succeeds.',
+      signature: 'Diagnostics check SG-001 detects missing 443 ingress rule.',
+      remediation: 'resource "aws_security_group" "web_sg" {\n  ingress {\n    from_port   = 443\n    to_port     = 443\n    protocol    = "tcp"\n    cidr_blocks = ["0.0.0.0/0"]\n  }\n}'
     },
     {
+      code: 'EXP-02',
       id: 'missing_default_route',
-      title: 'Scenario 2: Missing Default Route to Internet Gateway',
+      title: 'Sever Default Route to Internet Gateway',
       checkId: 'RT-001',
-      category: 'Route Table',
-      description: 'The Public Route Table lacks a 0.0.0.0/0 route pointing to the attached Internet Gateway.',
-      impact: 'Subnet instances cannot route external packets beyond the VPC local boundary (10.0.0.0/16).',
-      remediationHcl: 'resource "aws_route" "public_internet_access" {\n  route_table_id         = aws_route_table.public.id\n  destination_cidr_block = "0.0.0.0/0"\n  gateway_id             = aws_internet_gateway.igw.id\n}'
+      layer: 'Layer 3 / Route Table Propagation',
+      hypothesis: 'Subnet instances lose egress path beyond the local VPC (10.0.0.0/16); packets to external IPs are discarded.',
+      signature: 'Diagnostics check RT-001 fails with Missing 0.0.0.0/0 route.',
+      remediation: 'resource "aws_route" "public_internet_access" {\n  route_table_id         = aws_route_table.public.id\n  destination_cidr_block = "0.0.0.0/0"\n  gateway_id             = aws_internet_gateway.igw.id\n}'
     },
     {
+      code: 'EXP-03',
       id: 'igw_detached',
-      title: 'Scenario 3: Detached Internet Gateway',
+      title: 'Detach Internet Gateway from VPC',
       checkId: 'IGW-001',
-      category: 'VPC Gateway',
-      description: 'An Internet Gateway exists in the AWS region but is in the detached state and unlinked to the VPC.',
-      impact: 'External routing fails; AWS edge cannot translate public IP addresses to internal ENI IPs.',
-      remediationHcl: 'resource "aws_internet_gateway" "igw" {\n  vpc_id = aws_vpc.lab_vpc.id\n}'
+      layer: 'VPC Edge Gateway',
+      hypothesis: 'Internet Gateway enters detached state; public IPv4 addresses assigned to instances fail to translate at edge.',
+      signature: 'Diagnostics check IGW-001 trips with IGW detached state.',
+      remediation: 'resource "aws_internet_gateway" "igw" {\n  vpc_id = aws_vpc.lab_vpc.id\n}'
     },
     {
+      code: 'EXP-04',
       id: 'subnet_overlap',
-      title: 'Scenario 4: Subnet Overlap Collision',
+      title: 'Subnet CIDR Address Space Collision',
       checkId: 'CIDR-003',
-      category: 'VPC Subnetting',
-      description: 'Two subnets in the VPC are allocated overlapping address spaces (e.g. 10.0.1.0/24 and 10.0.1.0/24).',
-      impact: 'VPC router cannot resolve conflicting route destinations; creation fails with InvalidSubnet.Conflict.',
-      remediationHcl: 'Ensure subnets have mutually disjoint CIDR blocks (e.g., 10.0.1.0/24 and 10.0.2.0/24).'
+      layer: 'IPv4 Address Planning',
+      hypothesis: 'Two subnets configured with overlapping prefixes cause route table lookup conflicts.',
+      signature: 'Terraform plan rejects with InvalidSubnet.Conflict.',
+      remediation: 'Allocate disjoint CIDR blocks: public 10.0.1.0/24, private 10.0.2.0/24.'
     },
     {
+      code: 'EXP-05',
       id: 'invalid_cidr_boundary',
-      title: 'Scenario 5: Host Bits Set in CIDR String',
+      title: 'Non-Zero Host Bits in Network Specification',
       checkId: 'CIDR-001',
-      category: 'CIDR Math',
-      description: 'A host address is supplied instead of a network boundary (e.g. 10.0.1.5/24).',
-      impact: 'Terraform and Python ipaddress reject the string as malformed CIDR notation.',
-      remediationHcl: 'Zero out the host bits: 10.0.1.0/24.'
+      layer: 'CIDR Mathematics',
+      hypothesis: 'Supplying a host address (e.g. 10.0.1.5/24) causes Python ipaddress and Terraform to reject CIDR parsing.',
+      signature: 'Diagnostics check CIDR-001 trips with host bits set.',
+      remediation: 'Zero out the host bits: 10.0.1.0/24.'
     }
   ];
 
+  const activeCount = Object.values(activeFaults).filter(Boolean).length;
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Page Title & Explanation Header */}
-      <div>
-        <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-          Controlled Fault Injection & Recovery Lab
-        </h1>
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: 2 }}>
-          Section 15 Intentional Failure Testing: Simulate common configuration mistakes, inspect diagnostic evidence, and verify recovery.
-        </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Page Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <div className="page-eyebrow">Chaos Engineering / Resiliency Audit</div>
+          <h1 className="page-title">Controlled fault injection lab</h1>
+          <p className="page-description">
+            Simulate realistic AWS networking mistakes, inspect automated detection signatures, and verify remediation.
+          </p>
+        </div>
+
+        {activeCount > 0 && (
+          <button
+            type="button"
+            onClick={resetAllFaults}
+            className="btn btn-secondary"
+            style={{ height: 32 }}
+          >
+            Reset all to normal
+          </button>
+        )}
       </div>
 
-      {/* Scenarios List */}
+      {/* Metrics Ribbon */}
+      <div className="metric-strip">
+        <div className="metric-cell">
+          <div className="metric-label">Active Experiments</div>
+          <div className="metric-value font-mono" style={{ color: activeCount > 0 ? 'var(--status-error)' : 'var(--status-success)' }}>
+            {activeCount} Active
+          </div>
+        </div>
+        <div className="metric-cell">
+          <div className="metric-label">Scenario Runbooks</div>
+          <div className="metric-value font-mono">
+            {scenarios.length} Available
+          </div>
+        </div>
+        <div className="metric-cell">
+          <div className="metric-label">Automated Detection</div>
+          <div className="metric-value font-mono" style={{ color: 'var(--accent-text)' }}>
+            Continuous
+          </div>
+        </div>
+      </div>
+
+      {/* Experiment Runbooks List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {scenarios.map((sc) => {
           const isActive = !!activeFaults[sc.id];
@@ -117,113 +167,117 @@ export default function FaultInjectionLab({ onFaultsChanged }) {
           return (
             <div
               key={sc.id}
-              className="console-card"
+              className="panel"
               style={{
-                padding: '20px',
-                borderLeft: `3.5px solid ${isActive ? 'var(--status-error)' : 'var(--border-color)'}`
+                padding: '18px 20px',
+                borderLeft: `3px solid ${isActive ? 'var(--status-error)' : 'var(--border-color)'}`,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12
               }}
             >
-              {/* Header */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span className="font-mono" style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    padding: '2px 6px',
-                    borderRadius: 4,
-                    backgroundColor: 'var(--bg-surface-subtle)',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)'
-                  }}>
-                    {sc.checkId}
-                  </span>
+              {/* Top Row: Experiment Code, Title, Layer, and Toggle */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span className="font-mono" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)' }}>
+                      {sc.code}
+                    </span>
+                    <span className="status-tag status-tag-neutral font-mono" style={{ fontSize: '10.5px' }}>
+                      {sc.checkId}
+                    </span>
+                  </div>
+
                   <div>
-                    <h3 style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
                       {sc.title}
                     </h3>
-                    <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>
-                      Category: {sc.category}
+                    <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: 2 }}>
+                      {sc.layer}
                     </div>
                   </div>
                 </div>
 
-                {/* State & Action Button */}
+                {/* State Tag & Toggle Button */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span className={`status-pill ${isActive ? 'status-pill-error' : 'status-pill-neutral'}`}>
-                    <span className={`dot ${isActive ? 'dot-error' : 'dot-neutral'}`}></span>
+                  <span className={`status-tag ${isActive ? 'status-tag-error' : 'status-tag-neutral'}`}>
+                    <span className={`dot-indicator ${isActive ? 'red' : 'grey'}`}></span>
                     {isActive ? 'Fault Active' : 'Normal State'}
                   </span>
 
                   <button
+                    type="button"
                     onClick={() => handleToggleFault(sc.id, isActive)}
                     disabled={isLoading}
                     className={`btn ${isActive ? 'btn-danger' : 'btn-secondary'}`}
-                    style={{ minWidth: 130 }}
+                    style={{ height: 30, fontSize: '12px', minWidth: 100 }}
                   >
-                    {isLoading ? 'Updating...' : isActive ? 'Remediate Fault' : 'Inject Fault'}
+                    {isLoading ? 'Updating...' : isActive ? 'Restore Normal' : 'Inject Fault'}
                   </button>
                 </div>
               </div>
 
-              {/* Technical Description Grid */}
+              {/* Hypothesis & Detection Signature */}
               <div style={{
-                marginTop: 14,
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: 14,
-                fontSize: '12.5px'
+                gap: 12,
+                backgroundColor: 'var(--bg-surface-subtle)',
+                padding: '12px 14px',
+                borderRadius: 5,
+                fontSize: '12px'
               }}>
-                <div style={{ padding: '10px 12px', backgroundColor: 'var(--bg-surface-subtle)', borderRadius: 4, border: '1px solid var(--border-color)' }}>
-                  <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Failure Mechanism:</span>
-                  <p style={{ color: 'var(--text-primary)', marginTop: 2 }}>{sc.description}</p>
+                <div>
+                  <span style={{ fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10.5px', letterSpacing: '0.04em' }}>
+                    Hypothesis & Expected Impact:
+                  </span>
+                  <div style={{ color: 'var(--text-secondary)', marginTop: 3 }}>
+                    {sc.hypothesis}
+                  </div>
                 </div>
 
-                <div style={{ padding: '10px 12px', backgroundColor: 'var(--bg-surface-subtle)', borderRadius: 4, border: '1px solid var(--border-color)' }}>
-                  <span style={{ fontWeight: 600, color: 'var(--status-warning)' }}>Expected Workload Impact:</span>
-                  <p style={{ color: 'var(--text-primary)', marginTop: 2 }}>{sc.impact}</p>
+                <div>
+                  <span style={{ fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10.5px', letterSpacing: '0.04em' }}>
+                    Detection Signature:
+                  </span>
+                  <div style={{ color: 'var(--text-secondary)', marginTop: 3 }}>
+                    {sc.signature}
+                  </div>
                 </div>
               </div>
 
-              {/* Diagnostic Finding Callout */}
-              {targetFinding && (
+              {/* Live Detection Finding if Fault is Active */}
+              {isActive && targetFinding && (
                 <div style={{
-                  marginTop: 12,
                   padding: '10px 14px',
-                  borderRadius: 4,
-                  backgroundColor: targetFinding.status === 'FAIL' ? 'var(--status-error-bg)' : 'var(--status-success-bg)',
-                  border: `1px solid ${targetFinding.status === 'FAIL' ? 'var(--status-error-border)' : 'var(--status-success-border)'}`,
-                  fontSize: '12.5px'
+                  backgroundColor: 'var(--status-error-bg)',
+                  border: '1px solid var(--status-error-border)',
+                  borderRadius: 5,
+                  fontSize: '12px'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
-                    <span style={{ fontWeight: 600, color: targetFinding.status === 'FAIL' ? 'var(--status-error)' : 'var(--status-success)' }}>
-                      Diagnostic Verification: {targetFinding.status}
-                    </span>
-                    <span className="status-pill status-pill-neutral" style={{ fontSize: '10px' }}>
-                      {targetFinding.severity}
-                    </span>
+                  <div style={{ fontWeight: 600, color: 'var(--status-error)', marginBottom: 2 }}>
+                    Live Empirical Detection ({targetFinding.check_id})
                   </div>
-                  <div className="font-mono" style={{ color: 'var(--text-primary)', fontSize: '12px' }}>
-                    {targetFinding.evidence}
-                  </div>
+                  <div style={{ color: 'var(--text-primary)' }}>{targetFinding.message}</div>
                 </div>
               )}
 
-              {/* Remediation Pattern */}
-              <div style={{ marginTop: 12 }}>
-                <span style={{ fontSize: '11.5px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                  Terraform Infrastructure Remediation:
+              {/* Remediation Snippet */}
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Remediation Specification:
                 </span>
-                <pre className="font-mono" style={{
-                  marginTop: 4,
-                  padding: '8px 12px',
-                  borderRadius: 4,
-                  backgroundColor: '#1E2430',
-                  color: '#93C5FD',
+                <pre style={{
+                  backgroundColor: 'var(--terminal-bg)',
+                  color: 'var(--terminal-text)',
+                  padding: '10px 14px',
+                  borderRadius: 5,
                   fontSize: '11.5px',
-                  overflowX: 'auto',
-                  lineHeight: 1.5
+                  fontFamily: 'JetBrains Mono, monospace',
+                  whiteSpace: 'pre-wrap',
+                  margin: '4px 0 0 0'
                 }}>
-                  {sc.remediationHcl}
+                  {sc.remediation}
                 </pre>
               </div>
             </div>

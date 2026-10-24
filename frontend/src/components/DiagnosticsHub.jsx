@@ -7,6 +7,7 @@ export default function DiagnosticsHub() {
   const [filter, setFilter] = useState('ALL');
   const [targetHost, setTargetHost] = useState('1.1.1.1');
   const [errorMsg, setErrorMsg] = useState(null);
+  const [expandedCheckId, setExpandedCheckId] = useState(null);
 
   useEffect(() => {
     handleRunDiagnostics();
@@ -28,6 +29,10 @@ export default function DiagnosticsHub() {
     }
   };
 
+  const toggleExpand = (checkId) => {
+    setExpandedCheckId((prev) => (prev === checkId ? null : checkId));
+  };
+
   const filteredFindings = report?.findings.filter((f) => {
     if (filter === 'FAILS') return f.status === 'FAIL' || f.status === 'ERROR';
     if (filter === 'STATIC') return f.source === 'static';
@@ -38,234 +43,220 @@ export default function DiagnosticsHub() {
   }) || [];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Page Title & Controls Header */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Page Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            Diagnostics Hub & Infrastructure Verification
-          </h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: 2 }}>
-            Run empirical checks across static CIDR rules, local Terraform CLI, AWS configuration, and TCP connectivity.
+          <div className="page-eyebrow">Verification / Automated Audit</div>
+          <h1 className="page-title">Diagnostics & health inspection</h1>
+          <p className="page-description">
+            Empirical validation across CIDR subnetting, AWS route tables, security groups, and live packet reachability.
           </p>
         </div>
 
         {/* Live probe target and execution button */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Probe Target:</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Probe:</span>
             <input
               type="text"
-              className="input-control font-mono"
+              className="input-text font-mono"
               value={targetHost}
               onChange={(e) => setTargetHost(e.target.value)}
-              style={{ width: 120, height: 32, fontSize: '12px' }}
+              style={{ width: 110, height: 32, fontSize: '12px' }}
               placeholder="1.1.1.1"
             />
           </div>
 
           <button
+            type="button"
             onClick={handleRunDiagnostics}
             disabled={loading}
             className="btn btn-primary"
+            style={{ height: 32 }}
           >
-            {loading ? 'Evaluating Checks...' : 'Run Diagnostics'}
+            {loading ? 'Evaluating...' : 'Run diagnostics'}
           </button>
         </div>
       </div>
 
-      {/* Metrics Bar */}
+      {/* Open Metrics Strip (No repeated boxed cards) */}
       {report && (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-          gap: 12
-        }}>
-          <div className="console-card" style={{ padding: '14px 18px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-              Total Checks
-            </div>
-            <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>
-              {report.total_checks}
-            </div>
+        <div className="metric-strip">
+          <div className="metric-cell">
+            <div className="metric-label">Total Checks</div>
+            <div className="metric-value font-mono">{report.total_checks}</div>
           </div>
-
-          <div className="console-card" style={{ padding: '14px 18px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--status-success)', textTransform: 'uppercase' }}>
-              Passed
-            </div>
-            <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--status-success)', marginTop: 4 }}>
+          <div className="metric-cell">
+            <div className="metric-label" style={{ color: 'var(--status-success)' }}>Passed</div>
+            <div className="metric-value font-mono" style={{ color: 'var(--status-success)' }}>
               {report.passed}
             </div>
           </div>
-
-          <div className="console-card" style={{ padding: '14px 18px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--status-error)', textTransform: 'uppercase' }}>
-              Failed / Errors
-            </div>
-            <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--status-error)', marginTop: 4 }}>
+          <div className="metric-cell">
+            <div className="metric-label" style={{ color: 'var(--status-error)' }}>Failures</div>
+            <div className="metric-value font-mono" style={{ color: report.failed > 0 ? 'var(--status-error)' : 'var(--text-muted)' }}>
               {report.failed}
             </div>
           </div>
-
-          <div className="console-card" style={{ padding: '14px 18px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--status-warning)', textTransform: 'uppercase' }}>
-              Warnings
-            </div>
-            <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--status-warning)', marginTop: 4 }}>
+          <div className="metric-cell">
+            <div className="metric-label" style={{ color: 'var(--status-warning)' }}>Warnings</div>
+            <div className="metric-value font-mono" style={{ color: report.warnings > 0 ? 'var(--status-warning)' : 'var(--text-muted)' }}>
               {report.warnings}
             </div>
           </div>
-
-          <div className="console-card" style={{ padding: '14px 18px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-              Duration
-            </div>
-            <div className="font-mono" style={{ fontSize: '22px', fontWeight: 700, color: 'var(--accent-primary)', marginTop: 4 }}>
+          <div className="metric-cell">
+            <div className="metric-label">Duration</div>
+            <div className="metric-value font-mono" style={{ color: 'var(--accent-text)' }}>
               {report.execution_time_seconds}s
             </div>
           </div>
         </div>
       )}
 
-      {/* Filter Tabs */}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      {/* Filter Tabs Bar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
         {[
-          { id: 'ALL', label: 'All Checks' },
-          { id: 'FAILS', label: `Failures (${report?.failed || 0})` },
+          { id: 'ALL', label: 'All Checks', count: report?.total_checks },
+          { id: 'FAILS', label: 'Failures', count: report?.failed },
           { id: 'STATIC', label: 'Static CIDR' },
           { id: 'AWS', label: 'AWS Config' },
           { id: 'TF', label: 'Terraform CLI' },
           { id: 'LIVE', label: 'TCP Reachability' }
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setFilter(tab.id)}
-            className="btn"
-            style={{
-              padding: '5px 12px',
-              fontSize: '12px',
-              backgroundColor: filter === tab.id ? 'var(--accent-primary)' : 'var(--bg-surface)',
-              color: filter === tab.id ? '#FFFFFF' : 'var(--text-secondary)',
-              borderColor: filter === tab.id ? 'var(--accent-primary)' : 'var(--border-color)',
-              borderRadius: 4
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
+        ].map((tab) => {
+          const isSelected = filter === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setFilter(tab.id)}
+              className="btn btn-secondary"
+              style={{
+                padding: '4px 10px',
+                fontSize: '12px',
+                height: 28,
+                backgroundColor: isSelected ? 'var(--accent-subtle)' : 'var(--bg-surface)',
+                color: isSelected ? 'var(--accent-text)' : 'var(--text-secondary)',
+                borderColor: isSelected ? 'var(--accent)' : 'var(--border-color)',
+                fontWeight: isSelected ? 600 : 500
+              }}
+            >
+              <span>{tab.label}</span>
+              {typeof tab.count === 'number' && (
+                <span className="font-mono" style={{ fontSize: '11px', opacity: 0.8 }}>({tab.count})</span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Error Message */}
+      {/* Error Message if any */}
       {errorMsg && (
         <div style={{
-          padding: '12px 16px',
-          borderRadius: 6,
+          padding: '12px 14px',
           backgroundColor: 'var(--status-error-bg)',
           border: '1px solid var(--status-error-border)',
+          borderRadius: 5,
           color: 'var(--status-error)',
-          fontSize: '13px'
+          fontSize: '12.5px'
         }}>
-          <strong>Diagnostic Evaluation Error:</strong> {errorMsg}
+          Diagnostic execution error: {errorMsg}
         </div>
       )}
 
-      {/* Findings List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {filteredFindings.map((finding, idx) => {
-          const isPass = finding.status === 'PASS';
-          const isFail = finding.status === 'FAIL' || finding.status === 'ERROR';
+      {/* Technical Inspection Table */}
+      <div className="panel" style={{ overflow: 'hidden' }}>
+        <table className="data-table-clean">
+          <thead>
+            <tr>
+              <th style={{ width: 100 }}>Status</th>
+              <th style={{ width: 100 }}>Check ID</th>
+              <th>Check Description</th>
+              <th style={{ width: 130 }}>Layer / Source</th>
+              <th>Empirical Observation</th>
+              <th style={{ width: 90, textAlign: 'right' }}>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredFindings.map((finding) => {
+              const isPassed = finding.status === 'PASS';
+              const isWarning = finding.status === 'WARN';
+              const isFailed = finding.status === 'FAIL' || finding.status === 'ERROR';
+              const isExpanded = expandedCheckId === finding.check_id;
 
-          return (
-            <div
-              key={idx}
-              className="console-card"
-              style={{
-                padding: '18px 20px',
-                borderLeft: `3.5px solid ${isPass ? 'var(--status-success)' : isFail ? 'var(--status-error)' : 'var(--status-warning)'}`
-              }}
-            >
-              {/* Card Header */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span className="font-mono" style={{
-                    fontSize: '11.5px',
-                    fontWeight: 700,
-                    padding: '2px 6px',
-                    borderRadius: 4,
-                    backgroundColor: 'var(--bg-surface-subtle)',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)'
-                  }}>
-                    {finding.check_id}
-                  </span>
-                  <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    {finding.title}
-                  </h3>
-                </div>
+              return (
+                <React.Fragment key={finding.check_id}>
+                  <tr
+                    onClick={() => toggleExpand(finding.check_id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td>
+                      <span className={`status-tag ${isPassed ? 'status-tag-success' : isWarning ? 'status-tag-warning' : 'status-tag-error'}`}>
+                        <span className={`dot-indicator ${isPassed ? 'green' : isWarning ? 'amber' : 'red'}`}></span>
+                        {finding.status}
+                      </span>
+                    </td>
+                    <td className="font-mono" style={{ fontWeight: 600, fontSize: '12px' }}>
+                      {finding.check_id}
+                    </td>
+                    <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>
+                      {finding.name}
+                    </td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: '12px' }}>
+                      {finding.source}
+                    </td>
+                    <td style={{ fontSize: '12.5px', color: isPassed ? 'var(--text-secondary)' : 'var(--status-error)' }}>
+                      {finding.message}
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <span style={{ fontSize: '11.5px', color: 'var(--accent)', fontWeight: 500 }}>
+                        {isExpanded ? 'Hide' : 'Inspect'}
+                      </span>
+                    </td>
+                  </tr>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span className="status-pill status-pill-neutral">
-                    {finding.source.toUpperCase().replace('_', ' ')}
-                  </span>
+                  {/* Expanded Remediation Drawer */}
+                  {isExpanded && (
+                    <tr>
+                      <td colSpan="6" style={{ backgroundColor: 'var(--bg-surface-subtle)', padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          <div>
+                            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                              Root Cause & Empirical Evidence
+                            </div>
+                            <div style={{ fontSize: '13px', color: 'var(--text-primary)', marginTop: 4 }}>
+                              {finding.details || finding.message}
+                            </div>
+                          </div>
 
-                  <span className={`status-pill ${
-                    finding.severity === 'CRITICAL' || finding.severity === 'HIGH' ? 'status-pill-error' :
-                    finding.severity === 'MEDIUM' ? 'status-pill-warning' : 'status-pill-neutral'
-                  }`}>
-                    {finding.severity}
-                  </span>
-
-                  <span className={`status-pill ${
-                    isPass ? 'status-pill-success' : isFail ? 'status-pill-error' : 'status-pill-warning'
-                  }`}>
-                    <span className={`dot ${isPass ? 'dot-success' : isFail ? 'dot-error' : 'dot-warning'}`}></span>
-                    {finding.status}
-                  </span>
-                </div>
-              </div>
-
-              {/* Observed Evidence Box */}
-              <div style={{
-                marginTop: 12,
-                padding: '10px 14px',
-                borderRadius: 4,
-                backgroundColor: 'var(--bg-surface-subtle)',
-                border: '1px solid var(--border-color)',
-                fontSize: '12.5px'
-              }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>
-                  OBSERVED EVIDENCE:
-                </div>
-                <div className="font-mono" style={{ color: isFail ? 'var(--status-error)' : 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
-                  {finding.evidence}
-                </div>
-              </div>
-
-              {/* Actionable Recommendation Box */}
-              <div style={{
-                marginTop: 8,
-                padding: '10px 14px',
-                borderRadius: 4,
-                backgroundColor: isFail ? 'var(--status-error-bg)' : 'var(--status-success-bg)',
-                border: `1px solid ${isFail ? 'var(--status-error-border)' : 'var(--status-success-border)'}`,
-                fontSize: '12.5px'
-              }}>
-                <div style={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: isFail ? 'var(--status-error)' : 'var(--status-success)',
-                  marginBottom: 3
-                }}>
-                  RECOMMENDED REMEDIATION:
-                </div>
-                <div style={{ color: 'var(--text-primary)' }}>
-                  {finding.recommendation}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+                          {finding.remediation && (
+                            <div>
+                              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>
+                                Recommended Terraform Remediation
+                              </div>
+                              <pre style={{
+                                backgroundColor: 'var(--terminal-bg)',
+                                color: 'var(--terminal-text)',
+                                padding: '10px 14px',
+                                borderRadius: 5,
+                                fontSize: '11.5px',
+                                fontFamily: 'JetBrains Mono, monospace',
+                                whiteSpace: 'pre-wrap',
+                                margin: 0
+                              }}>
+                                {finding.remediation}
+                              </pre>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );

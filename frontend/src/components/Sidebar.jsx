@@ -5,9 +5,8 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
     {
       id: 'planner',
       label: 'Network Planner',
-      sublabel: 'VPC & Subnet CIDRs',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
           <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
           <line x1="6" y1="6" x2="6.01" y2="6"/>
@@ -18,9 +17,8 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
     {
       id: 'terraform',
       label: 'Terraform Engine',
-      sublabel: 'Plan, Apply & Destroy',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="16 18 22 12 16 6"/>
           <polyline points="8 6 2 12 8 18"/>
         </svg>
@@ -29,9 +27,8 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
     {
       id: 'diagnostics',
       label: 'Diagnostics Hub',
-      sublabel: '10 Health Checks',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10"/>
           <line x1="12" y1="16" x2="12" y2="12"/>
           <line x1="12" y1="8" x2="12.01" y2="8"/>
@@ -41,9 +38,8 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
     {
       id: 'inventory',
       label: 'Resource Inventory',
-      sublabel: 'Traffic & Route Matrix',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <polygon points="12 2 2 7 12 12 22 7 12 2"/>
           <polyline points="2 17 12 22 22 17"/>
           <polyline points="2 12 12 17 22 12"/>
@@ -53,9 +49,8 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
     {
       id: 'faults',
       label: 'Fault Injection Lab',
-      sublabel: 'Controlled Scenarios',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
           <line x1="12" y1="9" x2="12" y2="13"/>
           <line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -69,7 +64,7 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
 
   return (
     <aside style={{
-      width: 250,
+      width: 224,
       backgroundColor: 'var(--bg-sidebar)',
       borderRight: '1px solid var(--border-color)',
       display: 'flex',
@@ -80,57 +75,60 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
       position: 'sticky',
       top: 0
     }}>
-      {/* Brand & Target Region */}
+      {/* Top Header */}
       <div>
         <div style={{
-          padding: '18px 20px',
+          padding: '16px 18px',
           borderBottom: '1px solid var(--border-color)',
           display: 'flex',
           alignItems: 'center',
-          gap: 12
+          gap: 10
         }}>
+          {/* Subtle geometric node icon */}
           <div style={{
-            width: 32,
-            height: 32,
-            borderRadius: 6,
-            backgroundColor: 'var(--accent-primary)',
+            width: 26,
+            height: 26,
+            borderRadius: 5,
+            backgroundColor: 'var(--accent)',
             color: '#FFFFFF',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0
           }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
             </svg>
           </div>
-          <div>
-            <div style={{ fontSize: '14.5px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
               CloudOps Lab
-            </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
-              AWS Infrastructure Console
-            </div>
+            </span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+              Infrastructure Console
+            </span>
           </div>
         </div>
 
         {/* Region Target Bar */}
         <div style={{
-          padding: '11px 20px',
-          backgroundColor: 'var(--bg-surface-subtle)',
-          borderBottom: '1px solid var(--border-color)',
+          padding: '8px 18px',
+          borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          fontSize: '12px',
+          fontSize: '11px',
           color: 'var(--text-secondary)'
         }}>
-          <span style={{ fontWeight: 500 }}>Target Region:</span>
-          <span className="font-mono" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>us-east-1</span>
+          <span>Region</span>
+          <span className="font-mono" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>us-east-1</span>
         </div>
 
-        {/* Navigation Items */}
-        <nav style={{ padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {/* Navigation list */}
+        <nav style={{ padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
@@ -140,22 +138,22 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 12,
-                  padding: '9px 12px',
-                  borderRadius: 6,
-                  border: '1px solid transparent',
-                  backgroundColor: isActive ? 'var(--accent-light)' : 'transparent',
-                  color: isActive ? 'var(--accent-text)' : 'var(--text-primary)',
-                  fontWeight: isActive ? 700 : 500,
-                  fontSize: '13px',
+                  gap: 10,
+                  padding: '7px 10px',
+                  borderRadius: 5,
+                  border: 'none',
+                  backgroundColor: isActive ? 'var(--accent-subtle)' : 'transparent',
+                  color: isActive ? 'var(--accent-text)' : 'var(--text-secondary)',
+                  fontWeight: isActive ? 600 : 450,
+                  fontSize: '12.5px',
                   cursor: 'pointer',
                   textAlign: 'left',
                   width: '100%',
-                  transition: 'all 0.15s ease'
+                  transition: 'background-color 0.1s ease, color 0.1s ease'
                 }}
               >
                 <span style={{
-                  color: isActive ? 'var(--accent-text)' : 'var(--text-muted)',
+                  color: isActive ? 'var(--accent)' : 'var(--text-muted)',
                   display: 'flex',
                   alignItems: 'center'
                 }}>
@@ -163,7 +161,7 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
                 </span>
                 <span style={{ flex: 1 }}>{item.label}</span>
                 {item.id === 'faults' && activeFaultCount > 0 && (
-                  <span className="status-pill status-pill-warning" style={{ fontSize: '10px', padding: '1px 5px' }}>
+                  <span className="status-tag status-tag-warning" style={{ fontSize: '9.5px', padding: '1px 5px' }}>
                     {activeFaultCount}
                   </span>
                 )}
@@ -175,39 +173,36 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
 
       {/* Telemetry Footer */}
       <div style={{
-        padding: '14px 16px',
+        padding: '12px 16px',
         borderTop: '1px solid var(--border-color)',
-        backgroundColor: 'var(--bg-surface-subtle)'
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        fontSize: '11px'
       }}>
-        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-          System Telemetry
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--text-muted)' }}>Backend</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: isConnected ? 'var(--status-success)' : 'var(--status-error)', fontWeight: 500 }}>
+            <span className={`dot-indicator ${isConnected ? 'green' : 'red'}`}></span>
+            {isConnected ? 'Connected' : 'Offline'}
+          </span>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 7, fontSize: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Backend API</span>
-            <span className={`status-pill ${isConnected ? 'status-pill-success' : 'status-pill-error'}`}>
-              <span className={`dot ${isConnected ? 'dot-success' : 'dot-error'}`}></span>
-              {isConnected ? 'Connected' : 'Offline'}
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>AWS Engine</span>
-            <span className="status-pill status-pill-neutral">
-              {isAwsLive ? 'Live Cloud' : 'Simulated'}
-            </span>
-          </div>
-
-          {activeFaultCount > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-              <span style={{ color: 'var(--status-warning)', fontWeight: 600 }}>Active Faults</span>
-              <span className="status-pill status-pill-warning">
-                {activeFaultCount} Injected
-              </span>
-            </div>
-          )}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--text-muted)' }}>Engine</span>
+          <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>
+            {isAwsLive ? 'Live Cloud' : 'Simulated'}
+          </span>
         </div>
+
+        {activeFaultCount > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 2 }}>
+            <span style={{ color: 'var(--status-warning)' }}>Active Faults</span>
+            <span className="status-tag status-tag-warning" style={{ fontSize: '9.5px', padding: '1px 5px' }}>
+              {activeFaultCount} active
+            </span>
+          </div>
+        )}
       </div>
     </aside>
   );

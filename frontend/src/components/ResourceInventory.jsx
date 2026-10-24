@@ -26,8 +26,8 @@ export default function ResourceInventory() {
 
   if (loading && !inventory) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        Querying AWS configuration and live inventory...
+      <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+        <div style={{ fontSize: '13px' }}>Querying AWS infrastructure inventory...</div>
       </div>
     );
   }
@@ -39,336 +39,318 @@ export default function ResourceInventory() {
         backgroundColor: 'var(--status-error-bg)',
         border: '1px solid var(--status-error-border)',
         color: 'var(--status-error)',
-        borderRadius: 6
+        borderRadius: 5
       }}>
         Failed to load resource inventory: {error}
       </div>
     );
   }
 
-  // Evaluate packet trace
   const sg = inventory?.security_groups?.[0];
   const hasHttps = sg?.ingress_rules?.some((r) => r.port_range === '443');
   const hasHttp = sg?.ingress_rules?.some((r) => r.port_range === '80');
+  const hasSsh = sg?.ingress_rules?.some((r) => r.port_range === '22');
+  const hasDb = sg?.ingress_rules?.some((r) => r.port_range === '5432');
   const igwAttached = inventory?.internet_gateway?.state === 'attached';
   const hasDefaultRoute = inventory?.route_tables?.[0]?.routes?.some(
     (r) => r.destination === '0.0.0.0/0' && r.status === 'ACTIVE'
   );
 
-  const isTraceSuccess = activeTracePort === 443
-    ? igwAttached && hasDefaultRoute && hasHttps
-    : igwAttached && hasDefaultRoute && hasHttp;
+  let isPortAllowed = false;
+  if (activeTracePort === 443) isPortAllowed = hasHttps;
+  else if (activeTracePort === 80) isPortAllowed = hasHttp;
+  else if (activeTracePort === 22) isPortAllowed = hasSsh;
+  else if (activeTracePort === 5432) isPortAllowed = hasDb;
+
+  const isTraceSuccess = igwAttached && hasDefaultRoute && isPortAllowed;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Page Title & Refresh */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Page Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            Resource Inventory & Traffic Matrix
-          </h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: 2 }}>
-            Real-time inspection of active AWS VPC networking components, route table destinations, and security rules.
+          <div className="page-eyebrow">Infrastructure Asset Registry</div>
+          <h1 className="page-title">Resource inventory & traffic matrix</h1>
+          <p className="page-description">
+            Live AWS VPC components, route table destinations, and ingress packet evaluation.
           </p>
         </div>
 
         <button
+          type="button"
           onClick={loadInventory}
           disabled={loading}
           className="btn btn-secondary"
-          style={{ fontSize: '12px' }}
+          style={{ height: 32 }}
         >
-          {loading ? 'Refreshing...' : 'Refresh Inventory'}
+          {loading ? 'Refreshing...' : 'Refresh inventory'}
         </button>
       </div>
 
-      {/* Top Resource Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
-        {/* VPC Card */}
-        <div className="console-card" style={{ padding: '16px 18px' }}>
-          <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-            VPC Identifier
-          </div>
-          <div className="font-mono" style={{ fontSize: '14.5px', fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>
+      {/* Open Metrics Strip (Subtle metadata overview) */}
+      <div className="metric-strip">
+        <div className="metric-cell">
+          <div className="metric-label">VPC ID</div>
+          <div className="font-mono" style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--text-primary)', marginTop: 2 }}>
             {inventory?.vpc?.vpc_id}
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: 2 }}>
-            {inventory?.vpc?.cidr_block} ({inventory?.vpc?.total_addresses.toLocaleString()} IPs)
+          <div className="font-mono" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            {inventory?.vpc?.cidr_block}
           </div>
         </div>
 
-        {/* IGW Card */}
-        <div className="console-card" style={{ padding: '16px 18px' }}>
-          <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-            Internet Gateway
-          </div>
-          <div className="font-mono" style={{ fontSize: '14.5px', fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>
-            {inventory?.internet_gateway?.igw_id}
-          </div>
+        <div className="metric-cell">
+          <div className="metric-label">Internet Gateway</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-            <span className={`status-pill ${igwAttached ? 'status-pill-success' : 'status-pill-error'}`} style={{ fontSize: '10px' }}>
-              <span className={`dot ${igwAttached ? 'dot-success' : 'dot-error'}`}></span>
-              {igwAttached ? 'Attached' : 'Detached'}
+            <span className={`dot-indicator ${igwAttached ? 'green' : 'red'}`}></span>
+            <span className="font-mono" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+              {inventory?.internet_gateway?.igw_id}
             </span>
-            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
-              {igwAttached ? inventory?.internet_gateway?.vpc_attachment : 'No VPC Link'}
-            </span>
+          </div>
+          <div style={{ fontSize: '11px', color: igwAttached ? 'var(--status-success)' : 'var(--status-error)' }}>
+            {igwAttached ? 'Attached to VPC' : 'Detached'}
           </div>
         </div>
 
-        {/* Subnets Card */}
-        <div className="console-card" style={{ padding: '16px 18px' }}>
-          <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-            Active Subnets
+        <div className="metric-cell">
+          <div className="metric-label">Subnets</div>
+          <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginTop: 2 }}>
+            {inventory?.subnets?.length} Subnets
           </div>
-          <div style={{ fontSize: '14.5px', fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>
-            {inventory?.subnets?.length} Subnets Defined
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: 2 }}>
-            1 Public Tier, 1 Private Tier
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            1 Public, 1 Private
           </div>
         </div>
 
-        {/* Security Group Card */}
-        <div className="console-card" style={{ padding: '16px 18px' }}>
-          <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-            Security Group
-          </div>
-          <div className="font-mono" style={{ fontSize: '14.5px', fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>
+        <div className="metric-cell">
+          <div className="metric-label">Security Policy</div>
+          <div className="font-mono" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginTop: 4 }}>
             {sg?.group_id}
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: 2 }}>
-            {sg?.ingress_rules?.length} Ingress Rules Active
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            {sg?.ingress_rules?.length} Inbound Rules
           </div>
         </div>
       </div>
 
-      {/* Packet Path Flow Simulator */}
-      <div className="console-card" style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
-          <div>
-            <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
-              Packet Path & Traffic Flow Simulation
-            </h3>
-            <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-              Trace an inbound TCP connection from an external client through IGW, Route Table, and Security Group.
-            </p>
+      {/* Real AWS Data Tables (Prioritizing clean tables as requested) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* Table 1: Subnets */}
+        <div className="panel" style={{ overflow: 'hidden' }}>
+          <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
+              Subnet Allocations & Route Targets
+            </span>
+            <span className="status-tag status-tag-neutral font-mono">{inventory?.subnets?.length} Subnets</span>
+          </div>
+          <table className="data-table-clean">
+            <thead>
+              <tr>
+                <th>Subnet Name</th>
+                <th>Subnet ID</th>
+                <th>CIDR Block</th>
+                <th>Availability Zone</th>
+                <th>Public IP on Launch</th>
+                <th>State</th>
+              </tr>
+            </thead>
+            <tbody>
+              {inventory?.subnets?.map((sub) => (
+                <tr key={sub.subnet_id}>
+                  <td style={{ fontWeight: 600 }}>{sub.name}</td>
+                  <td className="font-mono" style={{ fontSize: '12px' }}>{sub.subnet_id}</td>
+                  <td className="font-mono" style={{ color: 'var(--accent-text)', fontWeight: 600 }}>{sub.cidr_block}</td>
+                  <td style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{sub.availability_zone}</td>
+                  <td>
+                    <span className={`status-tag ${sub.map_public_ip ? 'status-tag-accent' : 'status-tag-neutral'}`}>
+                      {sub.map_public_ip ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="status-tag status-tag-success">
+                      <span className="dot-indicator green"></span>
+                      {sub.state}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Table 2: Route Table Destinations & Security Group Ingress Rules Side by Side */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 20 }}>
+          {/* Route Table */}
+          <div className="panel" style={{ overflow: 'hidden' }}>
+            <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                Route Table ({inventory?.route_tables?.[0]?.route_table_id})
+              </span>
+              <span className="status-tag status-tag-neutral">Main RT</span>
+            </div>
+            <table className="data-table-clean">
+              <thead>
+                <tr>
+                  <th>Destination</th>
+                  <th>Target</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {inventory?.route_tables?.[0]?.routes?.map((r, i) => (
+                  <tr key={i}>
+                    <td className="font-mono" style={{ fontWeight: 600 }}>{r.destination}</td>
+                    <td className="font-mono" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{r.target}</td>
+                    <td>
+                      <span className="status-tag status-tag-success">
+                        <span className="dot-indicator green"></span>
+                        {r.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>Test Protocol:</span>
-            <button
-              onClick={() => setActiveTracePort(443)}
-              className="btn"
-              style={{
-                padding: '4px 10px',
-                fontSize: '11.5px',
-                backgroundColor: activeTracePort === 443 ? 'var(--accent-primary)' : 'var(--bg-surface-subtle)',
-                color: activeTracePort === 443 ? '#FFFFFF' : 'var(--text-primary)',
-                borderColor: activeTracePort === 443 ? 'var(--accent-primary)' : 'var(--border-color)'
-              }}
-            >
-              HTTPS (TCP 443)
-            </button>
-            <button
-              onClick={() => setActiveTracePort(80)}
-              className="btn"
-              style={{
-                padding: '4px 10px',
-                fontSize: '11.5px',
-                backgroundColor: activeTracePort === 80 ? 'var(--accent-primary)' : 'var(--bg-surface-subtle)',
-                color: activeTracePort === 80 ? '#FFFFFF' : 'var(--text-primary)',
-                borderColor: activeTracePort === 80 ? 'var(--accent-primary)' : 'var(--border-color)'
-              }}
-            >
-              HTTP (TCP 80)
-            </button>
+          {/* Security Group Ingress */}
+          <div className="panel" style={{ overflow: 'hidden' }}>
+            <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                Security Rules ({sg?.group_name})
+              </span>
+              <span className="status-tag status-tag-neutral">Stateful Ingress</span>
+            </div>
+            <table className="data-table-clean">
+              <thead>
+                <tr>
+                  <th>Protocol</th>
+                  <th>Port</th>
+                  <th>Source</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sg?.ingress_rules?.map((rule, idx) => (
+                  <tr key={idx}>
+                    <td className="font-mono" style={{ textTransform: 'uppercase', fontSize: '11.5px' }}>{rule.protocol}</td>
+                    <td className="font-mono" style={{ fontWeight: 600 }}>{rule.port_range}</td>
+                    <td className="font-mono" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{rule.source}</td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{rule.description}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* Trace Path Pipeline */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-          gap: 10,
-          backgroundColor: 'var(--bg-surface-subtle)',
-          padding: '16px',
-          borderRadius: 6,
-          border: '1px solid var(--border-color)'
-        }}>
-          {/* Hop 1: External Client */}
-          <div style={{ padding: '12px', backgroundColor: 'var(--bg-surface)', borderRadius: 4, border: '1px solid var(--border-color)' }}>
-            <div style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)' }}>STEP 1: CLIENT</div>
-            <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)', marginTop: 2 }}>Public Internet</div>
-            <div className="font-mono" style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: 2 }}>203.0.113.45</div>
-            <span className="status-pill status-pill-success" style={{ marginTop: 6 }}>Source SYN</span>
+        {/* Section 2: Interactive Packet Path Tracer */}
+        <div className="panel" style={{ padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                Packet Path Simulation
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: 2 }}>
+                Simulate inbound packet reachability from external clients across AWS routing and security boundaries.
+              </div>
+            </div>
+
+            {/* Port Selectors */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Target Port:</span>
+              {[
+                { port: 443, label: 'HTTPS (443)' },
+                { port: 80, label: 'HTTP (80)' },
+                { port: 22, label: 'SSH (22)' },
+                { port: 5432, label: 'Postgres (5432)' }
+              ].map((p) => (
+                <button
+                  key={p.port}
+                  type="button"
+                  onClick={() => setActiveTracePort(p.port)}
+                  className="btn btn-secondary"
+                  style={{
+                    padding: '3px 9px',
+                    fontSize: '11.5px',
+                    height: 26,
+                    backgroundColor: activeTracePort === p.port ? 'var(--accent-subtle)' : 'var(--bg-surface)',
+                    color: activeTracePort === p.port ? 'var(--accent-text)' : 'var(--text-secondary)',
+                    borderColor: activeTracePort === p.port ? 'var(--accent)' : 'var(--border-color)',
+                    fontWeight: activeTracePort === p.port ? 600 : 500
+                  }}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Hop 2: Internet Gateway */}
-          <div style={{ padding: '12px', backgroundColor: 'var(--bg-surface)', borderRadius: 4, border: '1px solid var(--border-color)' }}>
-            <div style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)' }}>STEP 2: EDGE GATEWAY</div>
-            <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)', marginTop: 2 }}>Internet Gateway</div>
-            <div className="font-mono" style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: 2 }}>1:1 Destination NAT</div>
-            <span className={`status-pill ${igwAttached ? 'status-pill-success' : 'status-pill-error'}`} style={{ marginTop: 6 }}>
-              {igwAttached ? 'Attached (Pass)' : 'Detached (Drop)'}
-            </span>
-          </div>
-
-          {/* Hop 3: Route Table */}
-          <div style={{ padding: '12px', backgroundColor: 'var(--bg-surface)', borderRadius: 4, border: '1px solid var(--border-color)' }}>
-            <div style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)' }}>STEP 3: ROUTING</div>
-            <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)', marginTop: 2 }}>Public Route Table</div>
-            <div className="font-mono" style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: 2 }}>0.0.0.0/0 Target</div>
-            <span className={`status-pill ${hasDefaultRoute ? 'status-pill-success' : 'status-pill-error'}`} style={{ marginTop: 6 }}>
-              {hasDefaultRoute ? 'Route Active' : 'No Route (Drop)'}
-            </span>
-          </div>
-
-          {/* Hop 4: Security Group */}
-          <div style={{ padding: '12px', backgroundColor: 'var(--bg-surface)', borderRadius: 4, border: '1px solid var(--border-color)' }}>
-            <div style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)' }}>STEP 4: STATEFUL FIREWALL</div>
-            <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)', marginTop: 2 }}>cloudops-lab-web-sg</div>
-            <div className="font-mono" style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: 2 }}>Port {activeTracePort} Ingress</div>
-            <span className={`status-pill ${(activeTracePort === 443 ? hasHttps : hasHttp) ? 'status-pill-success' : 'status-pill-error'}`} style={{ marginTop: 6 }}>
-              {(activeTracePort === 443 ? hasHttps : hasHttp) ? 'Rule Allowed' : 'Missing Rule (Drop)'}
-            </span>
-          </div>
-
-          {/* Result */}
+          {/* Stepper Flow for Packet Path */}
           <div style={{
-            padding: '12px',
-            backgroundColor: isTraceSuccess ? 'var(--status-success-bg)' : 'var(--status-error-bg)',
-            borderRadius: 4,
-            border: `1px solid ${isTraceSuccess ? 'var(--status-success-border)' : 'var(--status-error-border)'}`
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: 12,
+            backgroundColor: 'var(--bg-surface-subtle)',
+            padding: '16px',
+            borderRadius: 6,
+            border: '1px solid var(--border-subtle)'
           }}>
-            <div style={{ fontSize: '10.5px', fontWeight: 600, color: isTraceSuccess ? 'var(--status-success)' : 'var(--status-error)' }}>
-              END-TO-END OUTCOME
+            {/* Hop 1: External Client */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>1. Origin</span>
+              <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>External Client</div>
+              <div className="font-mono" style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>0.0.0.0/0</div>
+              <span className="status-tag status-tag-success" style={{ width: 'fit-content', marginTop: 4 }}>
+                <span className="dot-indicator green"></span> Transmitted
+              </span>
             </div>
-            <div style={{ fontWeight: 700, fontSize: '13px', color: isTraceSuccess ? 'var(--status-success)' : 'var(--status-error)', marginTop: 2 }}>
-              {isTraceSuccess ? 'Connection Established' : 'Connection Timed Out'}
+
+            {/* Hop 2: Internet Gateway */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>2. Edge Entry</span>
+              <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>Internet Gateway</div>
+              <div className="font-mono" style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>{inventory?.internet_gateway?.igw_id}</div>
+              <span className={`status-tag ${igwAttached ? 'status-tag-success' : 'status-tag-error'}`} style={{ width: 'fit-content', marginTop: 4 }}>
+                <span className={`dot-indicator ${igwAttached ? 'green' : 'red'}`}></span>
+                {igwAttached ? 'Accepted' : 'Detached (Drop)'}
+              </span>
             </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--text-primary)', marginTop: 4 }}>
-              {isTraceSuccess
-                ? 'Traffic reaches EC2 host socket; return path permitted statefully.'
-                : 'Packet dropped prior to OS stack. Inspect route or security group.'}
+
+            {/* Hop 3: Route Table */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>3. VPC Routing</span>
+              <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>Public Route Table</div>
+              <div className="font-mono" style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>0.0.0.0/0 -&gt; igw</div>
+              <span className={`status-tag ${hasDefaultRoute ? 'status-tag-success' : 'status-tag-error'}`} style={{ width: 'fit-content', marginTop: 4 }}>
+                <span className={`dot-indicator ${hasDefaultRoute ? 'green' : 'red'}`}></span>
+                {hasDefaultRoute ? 'Routable' : 'No Default Route'}
+              </span>
+            </div>
+
+            {/* Hop 4: Security Group */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>4. Security Ingress</span>
+              <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>{sg?.group_name}</div>
+              <div className="font-mono" style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>TCP Port {activeTracePort}</div>
+              <span className={`status-tag ${isPortAllowed ? 'status-tag-success' : 'status-tag-error'}`} style={{ width: 'fit-content', marginTop: 4 }}>
+                <span className={`dot-indicator ${isPortAllowed ? 'green' : 'red'}`}></span>
+                {isPortAllowed ? 'Rule Allowed' : 'Blocked (Drop)'}
+              </span>
+            </div>
+
+            {/* Hop 5: Destination Host */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>5. Host ENI</span>
+              <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>Web EC2 Target</div>
+              <div className="font-mono" style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>10.0.1.10</div>
+              <span className={`status-tag ${isTraceSuccess ? 'status-tag-success' : 'status-tag-error'}`} style={{ width: 'fit-content', marginTop: 4 }}>
+                <span className={`dot-indicator ${isTraceSuccess ? 'green' : 'red'}`}></span>
+                {isTraceSuccess ? 'Packet Delivered' : 'Connection Timeout'}
+              </span>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Subnets Details Table */}
-      <div className="console-card">
-        <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border-color)' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            AWS Subnet Inventory
-          </h3>
-        </div>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Subnet Identifier</th>
-              <th>Tier</th>
-              <th>IPv4 CIDR</th>
-              <th>Availability Zone</th>
-              <th>Auto-Assign Public IP</th>
-              <th>Usable Hosts</th>
-              <th>Route Table</th>
-            </tr>
-          </thead>
-          <tbody>
-            {inventory?.subnets?.map((sub, i) => (
-              <tr key={i}>
-                <td>
-                  <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{sub.name}</div>
-                  <div className="font-mono" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{sub.subnet_id}</div>
-                </td>
-                <td>
-                  <span className={`status-pill ${sub.tier === 'public' ? 'status-pill-accent' : 'status-pill-neutral'}`}>
-                    {sub.tier}
-                  </span>
-                </td>
-                <td className="font-mono">{sub.cidr_block}</td>
-                <td className="font-mono">{sub.availability_zone}</td>
-                <td>
-                  <span className={`status-pill ${sub.map_public_ip_on_launch ? 'status-pill-success' : 'status-pill-neutral'}`}>
-                    {sub.map_public_ip_on_launch ? 'Enabled' : 'Disabled'}
-                  </span>
-                </td>
-                <td className="font-mono">{sub.available_ipv4_count} IPs</td>
-                <td className="font-mono" style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>
-                  {sub.route_table_id}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Security Group Ingress / Egress Rules Table */}
-      <div className="console-card">
-        <div style={{
-          padding: '14px 18px',
-          borderBottom: '1px solid var(--border-color)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <div>
-            <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
-              Security Group Ingress & Egress Matrix ({sg?.group_name})
-            </h3>
-            <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-              Instance-level stateful traffic authorization rules.
-            </p>
-          </div>
-          <span className="font-mono status-pill status-pill-neutral">{sg?.group_id}</span>
-        </div>
-
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Rule ID</th>
-              <th>Direction</th>
-              <th>Protocol</th>
-              <th>Port Range</th>
-              <th>Source / Destination CIDR</th>
-              <th>Action</th>
-              <th>Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sg?.ingress_rules?.map((rule, i) => (
-              <tr key={`in-${i}`}>
-                <td className="font-mono" style={{ fontSize: '11.5px' }}>{rule.id}</td>
-                <td>
-                  <span className="status-pill status-pill-accent">INBOUND</span>
-                </td>
-                <td className="font-mono" style={{ textTransform: 'uppercase' }}>{rule.protocol}</td>
-                <td className="font-mono" style={{ fontWeight: 600 }}>{rule.port_range}</td>
-                <td className="font-mono">{rule.source}</td>
-                <td>
-                  <span className="status-pill status-pill-success">{rule.status}</span>
-                </td>
-                <td style={{ color: 'var(--text-secondary)' }}>{rule.description}</td>
-              </tr>
-            ))}
-            {sg?.egress_rules?.map((rule, i) => (
-              <tr key={`eg-${i}`}>
-                <td className="font-mono" style={{ fontSize: '11.5px' }}>{rule.id}</td>
-                <td>
-                  <span className="status-pill status-pill-neutral">OUTBOUND</span>
-                </td>
-                <td className="font-mono" style={{ textTransform: 'uppercase' }}>{rule.protocol}</td>
-                <td className="font-mono">{rule.port_range}</td>
-                <td className="font-mono">{rule.destination}</td>
-                <td>
-                  <span className="status-pill status-pill-success">{rule.status}</span>
-                </td>
-                <td style={{ color: 'var(--text-secondary)' }}>{rule.description}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </div>
   );
