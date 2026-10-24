@@ -1,0 +1,10 @@
+# Example terraform.tfvars file
+# Safe defaults for CloudOps Lab
+aws_region              = "us-east-1"
+availability_zone       = "us-east-1a"
+vpc_cidr                = "10.0.0.0/16"
+public_subnet_cidr      = "10.0.1.0/24"
+private_subnet_cidr     = "10.0.2.0/24"
+allowed_ingress_cidrs   = ["0.0.0.0/0"]
+enable_https_ingress    = true
+attach_internet_gateway = true
