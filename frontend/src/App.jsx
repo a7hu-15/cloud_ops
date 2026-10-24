@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Header from './components/Header';
+import Sidebar from './components/Sidebar';
+import TopNav from './components/TopNav';
 import NetworkPlanner from './components/NetworkPlanner';
 import TerraformRunner from './components/TerraformRunner';
 import DiagnosticsHub from './components/DiagnosticsHub';
@@ -12,6 +13,7 @@ export default function App() {
   const [systemHealth, setSystemHealth] = useState(null);
   const [activeFaultCount, setActiveFaultCount] = useState(0);
   const [approvedPlan, setApprovedPlan] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchHealthAndStatus();
@@ -20,6 +22,7 @@ export default function App() {
   }, []);
 
   const fetchHealthAndStatus = async () => {
+    setIsRefreshing(true);
     try {
       const health = await checkHealth();
       setSystemHealth(health);
@@ -33,81 +36,59 @@ export default function App() {
       setActiveFaultCount(count);
     } catch {
       // ignore
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Header with live system indicators and tabs */}
-      <Header
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-page)' }}>
+      {/* Left Navigation Sidebar */}
+      <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         systemHealth={systemHealth}
         activeFaultCount={activeFaultCount}
       />
 
-      {/* Main Content Area */}
-      <main style={{
-        maxWidth: 1400,
-        width: '100%',
-        margin: '0 auto',
-        padding: '28px 24px 60px',
-        flex: 1
-      }}>
-        {activeTab === 'planner' && (
-          <NetworkPlanner onPlanApproved={(plan) => setApprovedPlan(plan)} />
-        )}
+      {/* Main Console Canvas */}
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+        {/* Top Header / Breadcrumbs Bar */}
+        <TopNav
+          activeTab={activeTab}
+          onRefresh={fetchHealthAndStatus}
+          isRefreshing={isRefreshing}
+        />
 
-        {activeTab === 'terraform' && (
-          <TerraformRunner networkPlan={approvedPlan} />
-        )}
-
-        {activeTab === 'diagnostics' && (
-          <DiagnosticsHub />
-        )}
-
-        {activeTab === 'faults' && (
-          <FaultInjectionLab onFaultsChanged={(count) => setActiveFaultCount(count)} />
-        )}
-
-        {activeTab === 'viva' && (
-          <VivaStudyGuide />
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer style={{
-        borderTop: '1px solid var(--border-subtle)',
-        background: 'rgba(10, 13, 20, 0.95)',
-        padding: '20px 24px',
-        fontSize: '0.8rem',
-        color: 'var(--text-muted)'
-      }}>
-        <div style={{
-          maxWidth: 1400,
-          margin: '0 auto',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16
+        {/* Workspace Canvas */}
+        <main style={{
+          flex: 1,
+          padding: '24px 32px 64px',
+          maxWidth: 1320,
+          width: '100%',
+          margin: '0 auto'
         }}>
-          <div>
-            <strong style={{ color: 'var(--text-secondary)' }}>CloudOps Lab</strong> — AWS Infrastructure & Network Troubleshooting Platform
-            <div style={{ fontSize: '0.74rem', marginTop: 2 }}>
-              Built for educational & junior-engineer troubleshooting with zero credential exposure and least-cost architecture.
-            </div>
-          </div>
+          {activeTab === 'planner' && (
+            <NetworkPlanner onPlanApproved={(plan) => setApprovedPlan(plan)} />
+          )}
 
-          <div style={{ display: 'flex', gap: 16 }}>
-            <span>Security: Sandboxed Allowlist</span>
-            <span>•</span>
-            <span>Cost: $0 Fixed NAT</span>
-            <span>•</span>
-            <span>CI: GitHub Actions</span>
-          </div>
-        </div>
-      </footer>
+          {activeTab === 'terraform' && (
+            <TerraformRunner networkPlan={approvedPlan} />
+          )}
+
+          {activeTab === 'diagnostics' && (
+            <DiagnosticsHub />
+          )}
+
+          {activeTab === 'faults' && (
+            <FaultInjectionLab onFaultsChanged={(count) => setActiveFaultCount(count)} />
+          )}
+
+          {activeTab === 'viva' && (
+            <VivaStudyGuide />
+          )}
+        </main>
+      </div>
     </div>
   );
 }

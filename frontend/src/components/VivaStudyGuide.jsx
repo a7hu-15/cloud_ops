@@ -17,19 +17,19 @@ export default function VivaStudyGuide() {
       id: 'net-1',
       category: 'Networking',
       question: 'What is IPv4, what does /24 mean, and how is usable IP capacity calculated?',
-      answer: 'IPv4 is a 32-bit addressing protocol represented as 4 octets. A /24 CIDR prefix indicates the first 24 bits are network ID and the remaining 8 bits are host ID, yielding 2^8 = 256 total IP addresses. In standard networking, 254 are usable. However, in AWS VPC subnets, AWS reserves 5 IP addresses (.0 network, .1 router, .2 Amazon DNS, .3 future AWS use, .255 broadcast), leaving exactly 251 usable host IPs.'
+      answer: 'IPv4 is a 32-bit addressing protocol represented as four 8-bit octets. A /24 CIDR prefix indicates the first 24 bits are the network identifier and the remaining 8 bits are host identifiers, yielding 2^8 = 256 total IP addresses. In standard networking, 254 are usable. However, in AWS VPC subnets, AWS reserves 5 IP addresses (.0 network address, .1 VPC router, .2 Amazon DNS, .3 reserved for future AWS expansion, .255 network broadcast), leaving exactly 251 usable host IPs.'
     },
     {
       id: 'net-2',
       category: 'Networking',
       question: 'Why can CIDR ranges overlap, and why does AWS strictly prohibit overlap inside a VPC?',
-      answer: 'CIDRs overlap when one subnet range contains or intersects another (e.g. 10.0.1.0/24 and 10.0.1.128/25). In an AWS VPC, all subnets share the VPC virtual router. Conflicting address spaces would cause routing ambiguity (duplicate destination routes), making packet delivery non-deterministic. AWS EC2 APIs enforce mutually disjoint subnets at creation time.'
+      answer: 'CIDRs overlap when one subnet range contains or intersects another (e.g. 10.0.1.0/24 and 10.0.1.128/25). In an AWS VPC, all subnets share the VPC virtual router. Conflicting address spaces would cause routing ambiguity (duplicate destination routes in the VPC routing table), making packet delivery non-deterministic. AWS EC2 APIs enforce mutually disjoint subnets at creation time.'
     },
     {
       id: 'aws-1',
       category: 'AWS Architecture',
       question: 'What is a VPC, and what technically makes an AWS subnet "public"?',
-      answer: 'A VPC (Virtual Private Cloud) is a logically isolated virtual network in an AWS region. A subnet is NOT public simply because of its name! A subnet is technically public if: (1) Its associated route table contains a default route (0.0.0.0/0) pointing to an attached Internet Gateway (IGW); (2) Instances launched in it are allocated a public IPv4 address (auto-assign or Elastic IP); and (3) Network ACLs & Security Groups permit external traffic.'
+      answer: 'A VPC (Virtual Private Cloud) is a logically isolated virtual network in an AWS region. A subnet is not public simply because of its name. A subnet is technically public if: (1) Its associated route table contains a default route (0.0.0.0/0) pointing to an attached Internet Gateway (IGW); (2) Instances launched in it are allocated a public IPv4 address (auto-assign or Elastic IP); and (3) Network ACLs & Security Groups permit external traffic.'
     },
     {
       id: 'aws-2',
@@ -47,7 +47,7 @@ export default function VivaStudyGuide() {
       id: 'sec-1',
       category: 'Security',
       question: 'How do Security Groups differ from Network ACLs (NACLs)?',
-      answer: 'Security Groups are stateful firewalls operating at the instance/ENI level that only support ALLOW rules; return traffic is automatically permitted regardless of outbound rules. Network ACLs are stateless firewalls operating at the subnet boundary that evaluate numbered ALLOW and DENY rules in ascending order, requiring explicit inbound AND outbound rules for bidirectional communication.'
+      answer: 'Security Groups are stateful firewalls operating at the instance/ENI level that only support ALLOW rules; return traffic is automatically permitted regardless of outbound rules. Network ACLs are stateless firewalls operating at the subnet boundary that evaluate numbered ALLOW and DENY rules in ascending order, requiring explicit inbound and outbound rules for bidirectional communication.'
     },
     {
       id: 'sec-2',
@@ -71,13 +71,13 @@ export default function VivaStudyGuide() {
       id: 'backend-1',
       category: 'Security Design',
       question: 'How does CloudOps Lab backend prevent arbitrary command execution (RCE)?',
-      answer: 'The backend enforces strict subprocess sandboxing: (1) It never uses shell=True; all commands are executed via explicit argument arrays passed to execve; (2) A strict allowlist limits execution to predefined subcommands (validate, plan, apply, destroy); (3) Variables are sanitized via regex and written to a json file; (4) Destructive commands (apply/destroy) mandate explicit confirmation tokens (CONFIRM_APPLY, CONFIRM_DESTROY).'
+      answer: 'The backend enforces strict subprocess sandboxing: (1) It never uses shell=True; all commands are executed via explicit argument arrays passed to execve; (2) A strict allowlist limits execution to predefined subcommands (validate, plan, apply, destroy); (3) Variables are sanitized via regex and written to a JSON file; (4) Destructive commands (apply/destroy) mandate explicit confirmation tokens (CONFIRM_APPLY, CONFIRM_DESTROY).'
     },
     {
       id: 'diag-1',
       category: 'Diagnostics',
       question: 'What evidence supports check SG-001 (missing HTTPS rule), and what does it NOT prove?',
-      answer: 'The observed evidence is that DescribeSecurityGroups returns authorization for TCP port 80, but lacks an ingress rule for port 443. However, this is NOT definitive proof that HTTPS will work once added! The web server process (e.g. Nginx) might not be running, an OS firewall (ufw/iptables) may block port 443, DNS may fail, or the SSL certificate could be expired. Diagnostics report configuration evidence, not guaranteed root cause.'
+      answer: 'The observed evidence is that DescribeSecurityGroups returns authorization for TCP port 80, but lacks an ingress rule for port 443. However, this is not definitive proof that HTTPS will work once added. The web server process (e.g. Nginx) might not be running, an OS firewall (ufw/iptables) may block port 443, DNS may fail, or the SSL certificate could be expired. Diagnostics report configuration evidence, not guaranteed root cause.'
     },
     {
       id: 'cost-1',
@@ -97,40 +97,42 @@ export default function VivaStudyGuide() {
   });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* Header Panel */}
-      <div className="glass-panel" style={{ padding: '20px 24px' }}>
-        <h2 className="font-display" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff' }}>
-          Step 5: Viva & Technical Interview Preparation Guide (Section 18)
-        </h2>
-        <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: 4 }}>
-          Comprehensive study cards covering fundamental networking concepts, AWS routing architecture, IaC lifecycle, and security design.
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Page Title & Search Header */}
+      <div>
+        <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+          Engineering Viva & Technical Interview Reference
+        </h1>
+        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: 2 }}>
+          Section 18 Oral Exam Preparation: Architectural principles, AWS routing behavior, IaC lifecycle, and security design.
         </p>
+      </div>
 
-        {/* Search & Category Filter */}
-        <div style={{ marginTop: 18, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
+      {/* Search and Category Filters */}
+      <div className="console-card" style={{ padding: '16px 20px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
           <input
             type="text"
-            className="input-field"
+            className="input-control font-mono"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="🔍 Search viva questions and concepts..."
-            style={{ maxWidth: 350, padding: '8px 12px' }}
+            placeholder="Search questions and concepts..."
+            style={{ maxWidth: 320, height: 34, fontSize: '12.5px' }}
           />
 
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className="btn"
                 style={{
-                  padding: '5px 12px',
-                  fontSize: '0.74rem',
-                  borderRadius: 20,
-                  background: activeCategory === cat ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.05)',
-                  color: activeCategory === cat ? '#050a14' : 'var(--text-secondary)',
-                  fontWeight: activeCategory === cat ? 700 : 500
+                  padding: '4px 10px',
+                  fontSize: '11.5px',
+                  borderRadius: 4,
+                  backgroundColor: activeCategory === cat ? 'var(--accent-primary)' : 'var(--bg-surface-subtle)',
+                  color: activeCategory === cat ? '#FFFFFF' : 'var(--text-secondary)',
+                  borderColor: activeCategory === cat ? 'var(--accent-primary)' : 'var(--border-color)'
                 }}
               >
                 {cat}
@@ -140,51 +142,49 @@ export default function VivaStudyGuide() {
         </div>
       </div>
 
-      {/* Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 16 }}>
+      {/* Questions List */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {filteredCards.map((card) => {
           const isExpanded = !!expandedCards[card.id];
           return (
             <div
               key={card.id}
-              className="glass-panel"
+              className="console-card"
               style={{
-                padding: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                cursor: 'pointer'
+                padding: '16px 20px',
+                cursor: 'pointer',
+                transition: 'border-color 0.15s ease'
               }}
               onClick={() => toggleCard(card.id)}
             >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <span className="badge badge-cyan" style={{ fontSize: '0.68rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span className="status-pill status-pill-neutral" style={{ fontSize: '10.5px' }}>
                     {card.category}
                   </span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    {isExpanded ? '▲ Collapse' : '▼ View Answer'}
-                  </span>
+                  <h3 style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {card.question}
+                  </h3>
                 </div>
 
-                <h3 style={{ fontSize: '0.98rem', fontWeight: 700, color: '#fff', lineHeight: 1.4 }}>
-                  {card.question}
-                </h3>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500, flexShrink: 0, marginLeft: 12 }}>
+                  {isExpanded ? 'Hide' : 'Details'}
+                </span>
               </div>
 
               {isExpanded && (
                 <div style={{
-                  marginTop: 14,
-                  padding: '12px 14px',
-                  borderRadius: 8,
-                  background: 'rgba(0, 240, 255, 0.04)',
-                  border: '1px solid rgba(0, 240, 255, 0.2)',
-                  fontSize: '0.84rem',
-                  color: '#cbd5e1',
+                  marginTop: 12,
+                  padding: '12px 16px',
+                  borderRadius: 4,
+                  backgroundColor: 'var(--bg-surface-subtle)',
+                  border: '1px solid var(--border-color)',
+                  fontSize: '13px',
+                  color: 'var(--text-primary)',
                   lineHeight: 1.6
                 }}>
-                  <strong style={{ color: 'var(--accent-cyan)', display: 'block', marginBottom: 4 }}>
-                    Viva Key Points & Explanation:
+                  <strong style={{ color: 'var(--accent-primary)', display: 'block', fontSize: '12px', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                    Key Architectural Points:
                   </strong>
                   {card.answer}
                 </div>

@@ -10,9 +10,8 @@ export default function NetworkPlanner({ onPlanApproved }) {
   const [loading, setLoading] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
-  const [showReservedDetail, setShowReservedDetail] = useState(false);
+  const [showAddressTable, setShowAddressTable] = useState(true);
 
-  // Automatically validate default plan on mount
   useEffect(() => {
     handleValidate();
   }, []);
@@ -61,131 +60,134 @@ export default function NetworkPlanner({ onPlanApproved }) {
       setVpcCidr('10.0.0.0/16');
       setSubnets([
         { name: 'web-tier-a', cidr: '10.0.1.0/24' },
-        { name: 'web-tier-b', cidr: '10.0.1.128/25' } // Overlaps!
+        { name: 'web-tier-b', cidr: '10.0.1.128/25' }
       ]);
     } else if (presetName === 'outside') {
       setVpcCidr('10.0.0.0/16');
       setSubnets([
         { name: 'public-subnet', cidr: '10.0.1.0/24' },
-        { name: 'rogue-subnet', cidr: '192.168.10.0/24' } // Outside VPC!
+        { name: 'external-subnet', cidr: '192.168.10.0/24' }
       ]);
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* Top Controls / Presets Bar */}
-      <div className="glass-panel" style={{ padding: '20px 24px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-          <div>
-            <h2 className="font-display" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff' }}>
-              Step 1: IPv4 Network CIDR Designer
-            </h2>
-            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
-              Define VPC CIDR boundaries and validate subnet overlap, containment, and AWS 5-reserved address math.
-            </p>
-          </div>
-
-          {/* Preset Buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>PRESETS:</span>
-            <button
-              onClick={() => applyPreset('standard')}
-              className="btn btn-secondary"
-              style={{ fontSize: '0.78rem', padding: '6px 12px' }}
-            >
-              ✅ Standard Two-Tier
-            </button>
-            <button
-              onClick={() => applyPreset('overlap')}
-              className="btn btn-secondary"
-              style={{ fontSize: '0.78rem', padding: '6px 12px', borderColor: 'rgba(239, 68, 68, 0.4)' }}
-            >
-              ⚠️ Subnet Overlap Fault
-            </button>
-            <button
-              onClick={() => applyPreset('outside')}
-              className="btn btn-secondary"
-              style={{ fontSize: '0.78rem', padding: '6px 12px', borderColor: 'rgba(245, 158, 11, 0.4)' }}
-            >
-              ⚠️ Subnet Outside VPC
-            </button>
-          </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Page Title & Actions Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+            Network Address Planning & Validation
+          </h1>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: 2 }}>
+            Define VPC and subnet CIDR blocks, verify boundary containment, and audit AWS 5-reserved address capacity.
+          </p>
         </div>
 
-        {/* Inputs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginTop: 20 }}>
-          {/* VPC CIDR */}
+        {/* Presets and validation button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>Presets:</span>
+          <button
+            onClick={() => applyPreset('standard')}
+            className="btn btn-secondary"
+            style={{ fontSize: '12px', padding: '5px 10px' }}
+          >
+            Standard Two-Tier
+          </button>
+          <button
+            onClick={() => applyPreset('overlap')}
+            className="btn btn-secondary"
+            style={{ fontSize: '12px', padding: '5px 10px' }}
+          >
+            Subnet Overlap (Fault)
+          </button>
+          <button
+            onClick={() => applyPreset('outside')}
+            className="btn btn-secondary"
+            style={{ fontSize: '12px', padding: '5px 10px' }}
+          >
+            Subnet Outside VPC (Fault)
+          </button>
+          <button
+            onClick={handleValidate}
+            disabled={loading}
+            className="btn btn-primary"
+            style={{ marginLeft: 6 }}
+          >
+            {loading ? 'Validating...' : 'Validate Configuration'}
+          </button>
+        </div>
+      </div>
+
+      {/* Main Form & Configuration Card */}
+      <div className="console-card" style={{ padding: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+          {/* VPC CIDR Input */}
           <div>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
-              VPC IPv4 CIDR BLOCK:
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
+              VPC IPv4 CIDR BLOCK
             </label>
             <input
               type="text"
-              className="input-field"
+              className="input-control"
               value={vpcCidr}
               onChange={(e) => setVpcCidr(e.target.value)}
-              placeholder="e.g. 10.0.0.0/16"
+              placeholder="10.0.0.0/16"
             />
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-              Allowed: /16 to /28 (RFC 1918 recommended)
-            </span>
+            <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: 4 }}>
+              AWS requires a prefix length between /16 and /28 (RFC 1918 private range recommended).
+            </div>
           </div>
 
-          {/* Subnet configuration */}
+          {/* Subnet Inputs */}
           <div style={{ gridColumn: 'span 2' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                SUBNET ALLOCATIONS:
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                SUBNET DEFINITIONS ({subnets.length})
               </label>
               <button
                 onClick={addSubnet}
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: 'var(--accent-cyan)',
-                  fontSize: '0.78rem',
+                  color: 'var(--accent-primary)',
+                  fontSize: '12px',
                   fontWeight: 600,
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  padding: 0
                 }}
               >
-                + Add Another Subnet
+                + Add Subnet
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {subnets.map((sub, idx) => (
-                <div key={idx} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <input
                     type="text"
-                    className="input-field"
+                    className="input-control"
                     style={{ flex: 1 }}
                     value={sub.name}
                     onChange={(e) => handleSubnetChange(idx, 'name', e.target.value)}
-                    placeholder="Subnet Name"
+                    placeholder="Subnet Identifier"
                   />
                   <input
                     type="text"
-                    className="input-field"
-                    style={{ flex: 1.5 }}
+                    className="input-control"
+                    style={{ flex: 1.2 }}
                     value={sub.cidr}
                     onChange={(e) => handleSubnetChange(idx, 'cidr', e.target.value)}
-                    placeholder="CIDR, e.g. 10.0.1.0/24"
+                    placeholder="e.g. 10.0.1.0/24"
                   />
                   {subnets.length > 1 && (
                     <button
                       onClick={() => removeSubnet(idx)}
-                      style={{
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                        color: '#f87171',
-                        borderRadius: 8,
-                        padding: '10px 14px',
-                        cursor: 'pointer'
-                      }}
+                      className="btn btn-secondary"
+                      style={{ padding: '0 10px', height: 36, color: 'var(--status-error)' }}
                       title="Remove subnet"
                     >
-                      ✕
+                      Delete
                     </button>
                   )}
                 </div>
@@ -193,292 +195,275 @@ export default function NetworkPlanner({ onPlanApproved }) {
             </div>
           </div>
         </div>
-
-        {/* Validate Action */}
-        <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-          <button
-            onClick={handleValidate}
-            disabled={loading}
-            className="btn btn-primary"
-            style={{ minWidth: 160 }}
-          >
-            {loading ? 'Validating CIDRs...' : '🔍 Validate Network Plan'}
-          </button>
-        </div>
       </div>
 
-      {/* Validation Result Alert */}
+      {/* Validation Result Notification */}
       {errorMsg && (
         <div style={{
-          padding: '14px 18px',
-          borderRadius: 10,
-          background: 'rgba(239, 68, 68, 0.1)',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
-          color: '#fca5a5',
-          fontSize: '0.88rem'
+          padding: '12px 16px',
+          borderRadius: 6,
+          backgroundColor: 'var(--status-error-bg)',
+          border: '1px solid var(--status-error-border)',
+          color: 'var(--status-error)',
+          fontSize: '13px'
         }}>
-          <strong>Validation Error:</strong> {errorMsg}
+          <strong>Validation Exception:</strong> {errorMsg}
         </div>
       )}
 
       {validationResult && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Status Banner */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Status Bar */}
           <div style={{
-            padding: '16px 20px',
-            borderRadius: 12,
-            background: validationResult.is_valid
-              ? 'rgba(16, 185, 129, 0.1)'
-              : 'rgba(239, 68, 68, 0.12)',
-            border: `1px solid ${validationResult.is_valid ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.35)'}`,
+            padding: '12px 16px',
+            borderRadius: 6,
+            backgroundColor: validationResult.is_valid ? 'var(--status-success-bg)' : 'var(--status-error-bg)',
+            border: `1px solid ${validationResult.is_valid ? 'var(--status-success-border)' : 'var(--status-error-border)'}`,
             display: 'flex',
-            flexDirection: 'column',
-            gap: 8
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 12
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: '1.4rem' }}>{validationResult.is_valid ? '✅' : '❌'}</span>
-                <div>
-                  <h3 style={{
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    color: validationResult.is_valid ? '#34d399' : '#f87171'
-                  }}>
-                    {validationResult.is_valid ? 'Network Configuration Valid' : 'Network Validation Failed'}
-                  </h3>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    {validationResult.is_valid
-                      ? `VPC ${validationResult.vpc_cidr} encompasses ${validationResult.vpc_total_ips.toLocaleString()} total IP addresses.`
-                      : 'Please review and resolve the conflicts below before proceeding with Terraform deployment.'}
-                  </p>
-                </div>
-              </div>
-
-              {/* RFC 1918 Badge */}
-              {validationResult.is_valid && (
-                <span className="badge badge-emerald">RFC 1918 COMPLIANT</span>
-              )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span className={`status-pill ${validationResult.is_valid ? 'status-pill-success' : 'status-pill-error'}`}>
+                {validationResult.is_valid ? 'Valid Configuration' : 'Validation Failed'}
+              </span>
+              <span style={{ fontSize: '13px', color: validationResult.is_valid ? 'var(--status-success)' : 'var(--status-error)', fontWeight: 500 }}>
+                {validationResult.is_valid
+                  ? `VPC ${validationResult.vpc_cidr} encompasses ${validationResult.vpc_total_ips.toLocaleString()} total IPv4 addresses.`
+                  : `${validationResult.errors.length} configuration error(s) must be resolved.`}
+              </span>
             </div>
 
-            {/* Error List */}
-            {validationResult.errors.length > 0 && (
-              <div style={{ marginTop: 8, padding: '10px 14px', background: 'rgba(0,0,0,0.3)', borderRadius: 8 }}>
-                <strong style={{ fontSize: '0.8rem', color: '#f87171' }}>Issues Detected:</strong>
-                <ul style={{ fontSize: '0.82rem', color: '#fca5a5', paddingLeft: 20, marginTop: 4 }}>
-                  {validationResult.errors.map((err, i) => (
-                    <li key={i}>{err}</li>
-                  ))}
-                </ul>
-              </div>
+            {validationResult.is_valid && (
+              <span className="status-pill status-pill-neutral">
+                RFC 1918 Standard
+              </span>
             )}
           </div>
 
-          {/* Interactive Visual Network Topology */}
-          <div className="glass-panel" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+          {/* Validation Errors List if any */}
+          {validationResult.errors.length > 0 && (
+            <div className="console-card" style={{ padding: '14px 18px', borderColor: 'var(--status-error-border)' }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--status-error)', marginBottom: 6 }}>
+                DETECTED CONFIGURATION CONFLICTS:
+              </div>
+              <ul style={{ paddingLeft: 18, color: 'var(--text-primary)', fontSize: '13px', lineHeight: 1.6 }}>
+                {validationResult.errors.map((err, i) => (
+                  <li key={i}>{err}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Technical Network Topology View */}
+          <div className="console-card">
+            {/* Topology Header */}
+            <div style={{
+              padding: '14px 18px',
+              borderBottom: '1px solid var(--border-color)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
               <div>
-                <h3 className="font-display" style={{ fontSize: '1.15rem', fontWeight: 700 }}>
-                  Network Architecture & Packet Path Topology
+                <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  AWS VPC Architectural Layout
                 </h3>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                  Visual mapping of VPC boundaries, routing tiers, gateways, and stateful security controls.
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                  Routing boundaries, subnet allocation, and gateway connectivity.
                 </p>
               </div>
 
               <button
-                onClick={() => setShowReservedDetail(!showReservedDetail)}
+                onClick={() => setShowAddressTable(!showAddressTable)}
                 className="btn btn-secondary"
-                style={{ fontSize: '0.78rem', padding: '6px 12px' }}
+                style={{ fontSize: '12px', padding: '4px 10px' }}
               >
-                {showReservedDetail ? 'Hide AWS Reserved Math' : '📖 View AWS Reserved IPs (.0 - .3, .255)'}
+                {showAddressTable ? 'Hide IP Allocation Table' : 'Show IP Allocation Table'}
               </button>
             </div>
 
-            {/* Educational Drawer for AWS 5-reserved IPs */}
-            {showReservedDetail && (
+            {/* Diagram Canvas */}
+            <div style={{ padding: '24px', backgroundColor: 'var(--bg-surface-subtle)' }}>
+              {/* Outer VPC Boundary */}
               <div style={{
-                marginBottom: 20,
-                padding: '16px',
-                borderRadius: 10,
-                background: 'rgba(0, 240, 255, 0.05)',
-                border: '1px solid rgba(0, 240, 255, 0.2)',
-                fontSize: '0.84rem'
+                border: '1.5px solid #94A3B8',
+                borderRadius: 6,
+                padding: '20px',
+                backgroundColor: '#FFFFFF',
+                position: 'relative'
               }}>
-                <h4 style={{ color: 'var(--accent-cyan)', fontWeight: 700, marginBottom: 8 }}>
-                  AWS 5-Reserved IP Address Model (per Subnet)
-                </h4>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: 10 }}>
-                  AWS reserves 5 IP addresses in every IPv4 subnet. In a /24 (256 addresses), exactly 251 are available for EC2 or ENIs:
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
-                  <div style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.4)', borderRadius: 6 }}>
-                    <code style={{ color: '#38bdf8' }}>.0</code>: Network Address
-                  </div>
-                  <div style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.4)', borderRadius: 6 }}>
-                    <code style={{ color: '#38bdf8' }}>.1</code>: AWS VPC Router
-                  </div>
-                  <div style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.4)', borderRadius: 6 }}>
-                    <code style={{ color: '#38bdf8' }}>.2</code>: AmazonProvidedDNS
-                  </div>
-                  <div style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.4)', borderRadius: 6 }}>
-                    <code style={{ color: '#38bdf8' }}>.3</code>: Reserved for future AWS use
-                  </div>
-                  <div style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.4)', borderRadius: 6 }}>
-                    <code style={{ color: '#38bdf8' }}>.255</code>: Network Broadcast (Reserved)
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Visual VPC Container Box */}
-            <div style={{
-              border: '2px dashed rgba(0, 240, 255, 0.3)',
-              borderRadius: 16,
-              padding: 24,
-              background: 'rgba(10, 15, 30, 0.6)',
-              position: 'relative'
-            }}>
-              {/* VPC Header Badge */}
-              <div style={{
-                position: 'absolute',
-                top: -14,
-                left: 20,
-                background: '#0d1322',
-                padding: '2px 14px',
-                borderRadius: 20,
-                border: '1px solid var(--accent-cyan)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                color: 'var(--accent-cyan)'
-              }}>
-                <span>AWS VPC:</span>
-                <span className="font-mono">{validationResult.vpc_cidr}</span>
-                <span style={{ color: 'var(--text-muted)' }}>({validationResult.vpc_total_ips.toLocaleString()} Total IPs)</span>
-              </div>
-
-              {/* Internet Gateway Link Component */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 20,
-                gap: 12
-              }}>
+                {/* VPC Header Badge */}
                 <div style={{
-                  padding: '8px 16px',
-                  borderRadius: 10,
-                  background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(0, 240, 255, 0.15))',
-                  border: '1px solid var(--border-bright)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8,
-                  fontSize: '0.82rem',
-                  fontWeight: 600
+                  justifyContent: 'space-between',
+                  borderBottom: '1px solid var(--border-subtle)',
+                  paddingBottom: 12,
+                  marginBottom: 18
                 }}>
-                  <span>🌐</span>
-                  <span>Internet Gateway (IGW)</span>
-                  <span className="badge badge-emerald" style={{ fontSize: '0.65rem' }}>ATTACHED</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                      AWS VPC
+                    </span>
+                    <span className="font-mono" style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13px' }}>
+                      {validationResult.vpc_cidr}
+                    </span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                      ({validationResult.vpc_total_ips.toLocaleString()} Total Addresses, Netmask: {validationResult.vpc_netmask})
+                    </span>
+                  </div>
+
+                  <span className="status-pill status-pill-neutral">Target Region: us-east-1</span>
                 </div>
-                <div style={{ height: 2, width: 40, background: 'var(--accent-cyan)' }}></div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>0.0.0.0/0 Route</span>
-              </div>
 
-              {/* Subnet Cards Grid */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-                gap: 20
-              }}>
-                {validationResult.subnets.map((sub, idx) => {
-                  const isPublic = sub.name.toLowerCase().includes('public');
-                  return (
-                    <div
-                      key={idx}
-                      style={{
-                        background: isPublic ? 'rgba(0, 240, 255, 0.04)' : 'rgba(139, 92, 246, 0.04)',
-                        border: `1px solid ${isPublic ? 'rgba(0, 240, 255, 0.25)' : 'rgba(139, 92, 246, 0.25)'}`,
-                        borderRadius: 12,
-                        padding: 18,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 12
-                      }}
-                    >
-                      {/* Subnet Header */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ fontSize: '1.1rem' }}>{isPublic ? '🌍' : '🔒'}</span>
-                            <strong style={{ fontSize: '0.95rem' }}>{sub.name}</strong>
+                {/* Internet Gateway Node */}
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '6px 12px',
+                  backgroundColor: 'var(--bg-surface-subtle)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 4,
+                  fontSize: '12px',
+                  marginBottom: 16
+                }}>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>igw-cloudops-lab</span>
+                  <span className="status-pill status-pill-success" style={{ fontSize: '10px' }}>Attached</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '11.5px' }}>Route Target: 0.0.0.0/0</span>
+                </div>
+
+                {/* Subnet Nodes Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 14 }}>
+                  {validationResult.subnets.map((sub, idx) => {
+                    const isPublic = sub.name.toLowerCase().includes('public');
+                    return (
+                      <div
+                        key={idx}
+                        style={{
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 6,
+                          padding: '14px',
+                          backgroundColor: '#FFFFFF'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>
+                              {sub.name}
+                            </div>
+                            <div className="font-mono" style={{ fontSize: '12px', color: 'var(--accent-primary)', fontWeight: 500 }}>
+                              {sub.cidr}
+                            </div>
                           </div>
-                          <span className="font-mono" style={{ fontSize: '0.82rem', color: 'var(--accent-cyan)' }}>
-                            {sub.cidr}
+                          <span className={`status-pill ${isPublic ? 'status-pill-accent' : 'status-pill-neutral'}`}>
+                            {isPublic ? 'Public Tier' : 'Private Tier'}
                           </span>
                         </div>
-                        <span className={`badge ${isPublic ? 'badge-cyan' : 'badge-violet'}`}>
-                          {isPublic ? 'Public Tier' : 'Private Tier'}
-                        </span>
-                      </div>
 
-                      {/* IP Allocation Table */}
-                      <div style={{
-                        background: 'rgba(0, 0, 0, 0.3)',
-                        borderRadius: 8,
-                        padding: '10px 12px',
-                        fontSize: '0.78rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 4
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Total IP Addresses:</span>
-                          <span className="font-mono">{sub.total_ips}</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>AWS Reserved:</span>
-                          <span className="font-mono" style={{ color: '#fbbf24' }}>-5 (.0-.3, .255)</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: 4 }}>
-                          <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Usable Host IPs:</span>
-                          <span className="font-mono" style={{ color: '#34d399', fontWeight: 700 }}>{sub.usable_ips}</span>
-                        </div>
-                        {sub.first_usable_ip && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            <span>Host Range:</span>
-                            <span className="font-mono">{sub.first_usable_ip} → {sub.last_usable_ip}</span>
+                        {/* Technical Metadata Rows */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, fontSize: '12px', color: 'var(--text-secondary)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Available Host Capacity:</span>
+                            <span className="font-mono" style={{ fontWeight: 600, color: 'var(--status-success)' }}>
+                              {sub.usable_ips} addresses
+                            </span>
                           </div>
-                        )}
-                      </div>
 
-                      {/* Routing & Security Controls Badge */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: '0.75rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Route:</span>
-                          <code style={{
-                            padding: '2px 6px',
-                            background: 'rgba(255,255,255,0.05)',
-                            borderRadius: 4,
-                            color: isPublic ? '#38bdf8' : '#a78bfa'
-                          }}>
-                            {isPublic ? '0.0.0.0/0 → IGW' : '10.0.0.0/16 (Local Only)'}
-                          </code>
-                        </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>AWS Reserved Addresses:</span>
+                            <span className="font-mono" style={{ color: 'var(--text-muted)' }}>
+                              5 (.0-.3, .255)
+                            </span>
+                          </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Security Group:</span>
-                          <span style={{ color: 'var(--text-secondary)' }}>
-                            {isPublic ? 'cloudops-lab-web-sg (TCP 80, 443)' : 'Default Internal SG'}
-                          </span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Usable Host IP Range:</span>
+                            <span className="font-mono" style={{ fontSize: '11px', color: 'var(--text-primary)' }}>
+                              {sub.first_usable_ip} - {sub.last_usable_ip}
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: 5, marginTop: 2 }}>
+                            <span>Default Route Target:</span>
+                            <span className="font-mono" style={{ fontSize: '11px', fontWeight: 600, color: isPublic ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>
+                              {isPublic ? '0.0.0.0/0 -> igw' : '10.0.0.0/16 Local'}
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Security Group:</span>
+                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                              {isPublic ? 'web-sg (TCP 80, 443)' : 'default-internal-sg'}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
+
+            {/* AWS Reserved IP Address Table */}
+            {showAddressTable && (
+              <div style={{ borderTop: '1px solid var(--border-color)', padding: '16px 20px' }}>
+                <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 10 }}>
+                  AWS VPC Subnet Address Allocation Breakdown
+                </div>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Address Offset</th>
+                      <th>Purpose / AWS Assignment</th>
+                      <th>Routable</th>
+                      <th>Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="font-mono">Network + 0 (e.g. .0)</td>
+                      <td>Subnet Network Address</td>
+                      <td>No</td>
+                      <td>Identifies the network block.</td>
+                    </tr>
+                    <tr>
+                      <td className="font-mono">Network + 1 (e.g. .1)</td>
+                      <td>AWS VPC Default Router</td>
+                      <td>Yes (Internal)</td>
+                      <td>Default gateway for traffic exiting the subnet.</td>
+                    </tr>
+                    <tr>
+                      <td className="font-mono">Network + 2 (e.g. .2)</td>
+                      <td>AmazonProvidedDNS Resolver</td>
+                      <td>Yes (Internal)</td>
+                      <td>Internal DNS resolution server (VPC Base + 2).</td>
+                    </tr>
+                    <tr>
+                      <td className="font-mono">Network + 3 (e.g. .3)</td>
+                      <td>AWS Future Expansion</td>
+                      <td>No</td>
+                      <td>Reserved by AWS for internal infrastructure.</td>
+                    </tr>
+                    <tr>
+                      <td className="font-mono">Network + 4 to Last - 1</td>
+                      <td>EC2 / ENI Host Workloads</td>
+                      <td>Yes</td>
+                      <td>251 assignable addresses in a /24 subnet.</td>
+                    </tr>
+                    <tr>
+                      <td className="font-mono">Last IP (e.g. .255)</td>
+                      <td>Network Broadcast Address</td>
+                      <td>No</td>
+                      <td>AWS does not support broadcast, but reserves this address.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}

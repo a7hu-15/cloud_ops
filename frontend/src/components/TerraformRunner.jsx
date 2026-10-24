@@ -10,10 +10,10 @@ export default function TerraformRunner({ networkPlan }) {
   const [loadingAction, setLoadingAction] = useState(null);
   const [terminalLogs, setTerminalLogs] = useState([
     {
-      action: 'SYSTEM_READY',
+      action: 'INITIALIZE',
       exit_code: 0,
       timestamp: new Date().toLocaleTimeString(),
-      stdout: 'CloudOps Lab Sandboxed Terraform Engine initialized.\nInfrastructure directory: infrastructure/\nSecurity controls: Strict Process Allowlist, No shell=True, Manual Confirmation Guardrails enabled.',
+      stdout: 'CloudOps Lab Sandboxed Terraform Engine ready.\nTarget Directory: infrastructure/\nSecurity Controls: Process allowlist active (shell=False), Strict input regex, Destructive confirmation tokens enabled.',
       stderr: ''
     }
   ]);
@@ -102,57 +102,60 @@ export default function TerraformRunner({ networkPlan }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* Workflow Navigation & Safety Warnings */}
-      <div className="glass-panel" style={{ padding: '20px 24px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-          <div>
-            <h2 className="font-display" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff' }}>
-              Step 2: Controlled Terraform Infrastructure Workflows
-            </h2>
-            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
-              Execute declarative infrastructure operations through strict process allowlists and explicit safety approvals.
-            </p>
-          </div>
-
-          {/* Plan Summary Badge if available */}
-          {lastPlanSummary && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              padding: '8px 16px',
-              borderRadius: 10,
-              background: 'rgba(59, 130, 246, 0.1)',
-              border: '1px solid rgba(59, 130, 246, 0.3)'
-            }}>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Latest Plan:</span>
-              <span style={{ color: '#34d399', fontWeight: 700, fontSize: '0.85rem' }}>+{lastPlanSummary.to_add} to add</span>
-              <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '0.85rem' }}>~{lastPlanSummary.to_change} to change</span>
-              <span style={{ color: '#f87171', fontWeight: 700, fontSize: '0.85rem' }}>-{lastPlanSummary.to_destroy} to destroy</span>
-            </div>
-          )}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Page Title & Status Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+            Terraform Infrastructure Pipeline
+          </h1>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: 2 }}>
+            Manage the AWS networking lifecycle via allowlisted subprocess execution and safety approval checkpoints.
+          </p>
         </div>
 
-        {/* Workflow Action Buttons */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: 14,
-          marginTop: 20
-        }}>
+        {/* Plan summary badge */}
+        {lastPlanSummary && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '6px 12px',
+            borderRadius: 6,
+            backgroundColor: 'var(--bg-surface)',
+            border: '1px solid var(--border-color)',
+            fontSize: '12px'
+          }}>
+            <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Latest Plan Diff:</span>
+            <span className="font-mono" style={{ fontWeight: 600, color: 'var(--status-success)' }}>
+              +{lastPlanSummary.to_add} to add
+            </span>
+            <span className="font-mono" style={{ fontWeight: 600, color: 'var(--status-warning)' }}>
+              ~{lastPlanSummary.to_change} to change
+            </span>
+            <span className="font-mono" style={{ fontWeight: 600, color: 'var(--status-error)' }}>
+              -{lastPlanSummary.to_destroy} to destroy
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Action Pipeline Grid */}
+      <div className="console-card" style={{ padding: '20px' }}>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+          Infrastructure Actions
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
           {/* Validate */}
           <button
             onClick={handleValidate}
             disabled={loadingAction !== null}
             className="btn btn-secondary"
-            style={{ justifyContent: 'flex-start', padding: '14px 18px' }}
+            style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '12px 14px', height: 'auto' }}
           >
-            <span style={{ fontSize: '1.2rem' }}>🧪</span>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>1. Validate Config</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>terraform validate</div>
-            </div>
+            <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>1. Validate Config</div>
+            <div className="font-mono" style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: 2 }}>terraform validate</div>
           </button>
 
           {/* Plan */}
@@ -160,120 +163,99 @@ export default function TerraformRunner({ networkPlan }) {
             onClick={handlePlan}
             disabled={loadingAction !== null}
             className="btn btn-secondary"
-            style={{ justifyContent: 'flex-start', padding: '14px 18px' }}
+            style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '12px 14px', height: 'auto' }}
           >
-            <span style={{ fontSize: '1.2rem' }}>📋</span>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>2. Review Plan</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>terraform plan</div>
-            </div>
+            <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>2. Review Plan Diff</div>
+            <div className="font-mono" style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: 2 }}>terraform plan</div>
           </button>
 
-          {/* Apply with Safety Guardrail */}
+          {/* Apply with Safety Confirmation */}
           <button
             onClick={() => { setModalMode('apply'); setConfirmationInput(''); }}
             disabled={loadingAction !== null}
             className="btn btn-primary"
-            style={{ justifyContent: 'flex-start', padding: '14px 18px' }}
+            style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '12px 14px', height: 'auto' }}
           >
-            <span style={{ fontSize: '1.2rem' }}>🚀</span>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>3. Apply Infrastructure</div>
-              <div style={{ fontSize: '0.72rem', color: '#0f172a' }}>Requires explicit confirmation</div>
-            </div>
+            <div style={{ fontWeight: 600, fontSize: '13px' }}>3. Apply Infrastructure</div>
+            <div style={{ fontSize: '11px', opacity: 0.85, marginTop: 2 }}>Requires typed confirmation</div>
           </button>
 
-          {/* Destroy with Safety Guardrail */}
+          {/* Destroy with Safety Confirmation */}
           <button
             onClick={() => { setModalMode('destroy'); setConfirmationInput(''); }}
             disabled={loadingAction !== null}
             className="btn btn-danger"
-            style={{ justifyContent: 'flex-start', padding: '14px 18px' }}
+            style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '12px 14px', height: 'auto' }}
           >
-            <span style={{ fontSize: '1.2rem' }}>🗑️</span>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>4. Destroy Infrastructure</div>
-              <div style={{ fontSize: '0.72rem', color: '#fecaca' }}>Prevents unexpected charges</div>
-            </div>
+            <div style={{ fontWeight: 600, fontSize: '13px' }}>4. Destroy Infrastructure</div>
+            <div style={{ fontSize: '11px', opacity: 0.85, marginTop: 2 }}>Safe post-lab teardown</div>
           </button>
         </div>
       </div>
 
-      {/* Terminal / Live Console Log */}
-      <div className="glass-panel" style={{ padding: '0', overflow: 'hidden' }}>
-        {/* Terminal Header */}
+      {/* Terminal Console Card */}
+      <div className="console-card" style={{ overflow: 'hidden' }}>
         <div style={{
+          padding: '10px 16px',
+          borderBottom: '1px solid var(--border-color)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '12px 18px',
-          background: 'rgba(5, 8, 15, 0.95)',
-          borderBottom: '1px solid var(--border-subtle)'
+          backgroundColor: 'var(--bg-surface-subtle)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ef4444' }}></div>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b' }}></div>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981' }}></div>
-            </div>
-            <span className="font-mono" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-              Terraform Safe Execution Console {loadingAction && `[Running ${loadingAction}...]`}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
+              Terraform Execution Log
             </span>
+            {loadingAction && (
+              <span className="status-pill status-pill-accent" style={{ fontSize: '10px' }}>
+                Running {loadingAction}...
+              </span>
+            )}
           </div>
 
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={() => setTerminalLogs([])}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-muted)',
-                fontSize: '0.75rem',
-                cursor: 'pointer'
-              }}
-            >
-              Clear Console
-            </button>
-          </div>
+          <button
+            onClick={() => setTerminalLogs([])}
+            className="btn btn-secondary"
+            style={{ fontSize: '11.5px', padding: '3px 8px' }}
+          >
+            Clear Log
+          </button>
         </div>
 
         {/* Terminal Body */}
-        <div style={{
-          padding: '18px',
-          background: '#060911',
-          minHeight: 280,
-          maxHeight: 450,
-          overflowY: 'auto',
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.82rem',
-          lineHeight: 1.6
-        }}>
+        <div className="terminal-window">
           {terminalLogs.map((log, idx) => {
             const isSuccess = log.exit_code === 0;
             return (
-              <div key={idx} style={{ marginBottom: 18 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-muted)', fontSize: '0.74rem' }}>
+              <div key={idx} style={{ marginBottom: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#94A3B8', fontSize: '11.5px' }}>
                   <span>[{log.timestamp}]</span>
-                  <span style={{
-                    color: isSuccess ? 'var(--accent-cyan)' : 'var(--accent-rose)',
-                    fontWeight: 700
-                  }}>
+                  <span style={{ color: isSuccess ? '#38BDF8' : '#F87171', fontWeight: 600 }}>
                     $ terraform {log.action}
                   </span>
                   {log.duration_seconds !== undefined && (
                     <span>({log.duration_seconds}s)</span>
                   )}
-                  <span className={`badge ${isSuccess ? 'badge-emerald' : 'badge-rose'}`} style={{ fontSize: '0.62rem' }}>
-                    EXIT {log.exit_code}
+                  <span style={{
+                    padding: '1px 6px',
+                    borderRadius: 3,
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    backgroundColor: isSuccess ? 'rgba(52, 211, 153, 0.15)' : 'rgba(248, 113, 113, 0.2)',
+                    color: isSuccess ? '#34D399' : '#F87171'
+                  }}>
+                    Exit {log.exit_code}
                   </span>
                 </div>
 
                 {log.stdout && (
                   <pre style={{
-                    color: '#e2e8f0',
+                    color: '#E2E8F0',
                     whiteSpace: 'pre-wrap',
                     wordBreak: 'break-all',
-                    marginTop: 6
+                    marginTop: 4,
+                    fontSize: '12px'
                   }}>
                     {log.stdout}
                   </pre>
@@ -281,10 +263,11 @@ export default function TerraformRunner({ networkPlan }) {
 
                 {log.stderr && (
                   <pre style={{
-                    color: '#f87171',
+                    color: '#FCA5A5',
                     whiteSpace: 'pre-wrap',
                     wordBreak: 'break-all',
-                    marginTop: 6
+                    marginTop: 4,
+                    fontSize: '12px'
                   }}>
                     {log.stderr}
                   </pre>
@@ -295,58 +278,57 @@ export default function TerraformRunner({ networkPlan }) {
         </div>
       </div>
 
-      {/* Safety Confirmation Modal (Apply or Destroy) */}
+      {/* Explicit Safety Confirmation Modal */}
       {modalMode && (
         <div className="modal-overlay">
-          <div className="glass-panel" style={{
-            maxWidth: 520,
-            width: '100%',
-            padding: '28px',
-            background: '#0c101d',
-            border: `1px solid ${modalMode === 'apply' ? 'var(--accent-cyan)' : 'var(--accent-rose)'}`
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-              <span style={{ fontSize: '1.8rem' }}>{modalMode === 'apply' ? '🛡️' : '⚠️'}</span>
+          <div className="console-card" style={{ maxWidth: 480, width: '100%', padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
               <div>
-                <h3 className="font-display" style={{
-                  fontSize: '1.2rem',
+                <h3 style={{
+                  fontSize: '16px',
                   fontWeight: 700,
-                  color: modalMode === 'apply' ? '#fff' : '#f87171'
+                  color: modalMode === 'apply' ? 'var(--text-primary)' : 'var(--status-error)'
                 }}>
-                  {modalMode === 'apply' ? 'Explicit Approval Required for Apply' : 'Teardown Confirmation Required'}
+                  {modalMode === 'apply' ? 'Confirm Infrastructure Deployment' : 'Confirm Infrastructure Teardown'}
                 </h3>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                  CloudOps Lab Operational Safety Guardrail (FR-05, FR-09)
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: 2 }}>
+                  Safety Guardrail Requirement (FR-05, FR-09)
                 </p>
               </div>
+
+              <span className={`status-pill ${modalMode === 'apply' ? 'status-pill-accent' : 'status-pill-error'}`}>
+                {modalMode === 'apply' ? 'Apply Action' : 'Destructive Action'}
+              </span>
             </div>
 
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 16 }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 16 }}>
               {modalMode === 'apply'
-                ? 'Applying infrastructure will provision AWS networking resources (VPC, subnets, route tables, and security groups). Please review your plan diff before proceeding.'
-                : 'Destroying infrastructure will permanently remove all lab resources to ensure zero lingering costs.'}
+                ? 'Applying configuration provisions AWS VPC resources, route tables, and security groups. Ensure you have reviewed the planned changes.'
+                : 'Destroying configuration will remove all managed AWS resources in the lab workspace to prevent ongoing charges.'}
             </p>
 
             <div style={{
-              padding: '12px',
-              borderRadius: 8,
-              background: 'rgba(0,0,0,0.4)',
+              padding: '10px 14px',
+              borderRadius: 6,
+              backgroundColor: 'var(--bg-surface-subtle)',
+              border: '1px solid var(--border-color)',
               marginBottom: 16,
-              fontSize: '0.82rem'
+              fontSize: '12.5px'
             }}>
-              <span style={{ color: 'var(--text-muted)' }}>To proceed, type the confirmation phrase: </span>
-              <strong className="font-mono" style={{ color: modalMode === 'apply' ? 'var(--accent-cyan)' : 'var(--accent-rose)' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Type </span>
+              <strong className="font-mono" style={{ color: modalMode === 'apply' ? 'var(--accent-primary)' : 'var(--status-error)' }}>
                 {modalMode === 'apply' ? 'CONFIRM_APPLY' : 'CONFIRM_DESTROY'}
               </strong>
+              <span style={{ color: 'var(--text-secondary)' }}> to authorize execution:</span>
             </div>
 
             <input
               type="text"
-              className="input-field"
+              className="input-control font-mono"
               value={confirmationInput}
               onChange={(e) => setConfirmationInput(e.target.value)}
-              placeholder={`Type ${modalMode === 'apply' ? 'CONFIRM_APPLY' : 'CONFIRM_DESTROY'}`}
-              style={{ marginBottom: 20 }}
+              placeholder={modalMode === 'apply' ? 'CONFIRM_APPLY' : 'CONFIRM_DESTROY'}
+              style={{ marginBottom: 18 }}
             />
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
@@ -361,7 +343,7 @@ export default function TerraformRunner({ networkPlan }) {
                 disabled={confirmationInput !== (modalMode === 'apply' ? 'CONFIRM_APPLY' : 'CONFIRM_DESTROY')}
                 className={`btn ${modalMode === 'apply' ? 'btn-primary' : 'btn-danger'}`}
               >
-                {modalMode === 'apply' ? 'Approve & Apply' : 'Confirm Teardown'}
+                {modalMode === 'apply' ? 'Authorize & Apply' : 'Authorize & Destroy'}
               </button>
             </div>
           </div>
