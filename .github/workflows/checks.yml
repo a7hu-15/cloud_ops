@@ -30,6 +30,12 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: '1.8.5'
+          terraform_wrapper: false
+
+      - name: Initialize Terraform Plugins (Offline/No AWS Credentials)
+        run: |
+          cd infrastructure
+          terraform init -backend=false
 
       - name: Run Backend Unit & Integration Tests (pytest)
         run: |
