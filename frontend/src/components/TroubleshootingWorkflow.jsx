@@ -182,7 +182,7 @@ export default function TroubleshootingWorkflow() {
           <div className="page-eyebrow">Signature Engineering Feature</div>
           <h1 className="page-title">Troubleshooting & recovery engine</h1>
           <p className="page-description">
-            End-to-end evidence-based lifecycle: Lab Setup $\rightarrow$ Fault Injection $\rightarrow$ Diagnostics $\rightarrow$ Root-Cause Analysis $\rightarrow$ Remediation $\rightarrow$ Verification.
+            End-to-end evidence-based lifecycle: Lab Setup → Fault Injection → Diagnostics → Root-Cause Analysis → Remediation → Verification.
           </p>
         </div>
 
