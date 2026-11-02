@@ -1,20 +1,68 @@
 import React, { useState, useEffect } from 'react';
-import { validateNetwork } from '../api/client';
+import { validateNetwork, saveNetworkConfig, listNetworkConfigs } from '../api/client';
 
 export default function NetworkPlanner({ onPlanApproved }) {
+  const [configName, setConfigName] = useState('Standard Lab Network');
   const [vpcCidr, setVpcCidr] = useState('10.0.0.0/16');
   const [subnets, setSubnets] = useState([
-    { name: 'public-subnet', cidr: '10.0.1.0/24', routeTarget: 'igw' },
-    { name: 'private-subnet', cidr: '10.0.2.0/24', routeTarget: 'local' }
+    { name: 'public-subnet', cidr: '10.0.1.0/24', routeTarget: 'igw', tier: 'public' },
+    { name: 'private-subnet', cidr: '10.0.2.0/24', routeTarget: 'local', tier: 'private' }
   ]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null);
+  const [savedConfigs, setSavedConfigs] = useState([]);
   const [validationResult, setValidationResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [showAddressTable, setShowAddressTable] = useState(true);
 
   useEffect(() => {
     handleValidate();
+    loadSavedConfigs();
   }, []);
+
+  const loadSavedConfigs = async () => {
+    try {
+      const data = await listNetworkConfigs();
+      setSavedConfigs(data);
+    } catch {
+      // ignore if unauthenticated
+    }
+  };
+
+  const handleSaveConfig = async () => {
+    setSaving(true);
+    setSaveStatus(null);
+    try {
+      const payloadSubnets = subnets.map((s) => ({
+        name: s.name,
+        cidr: s.cidr,
+        tier: s.routeTarget === 'igw' ? 'public' : 'private'
+      }));
+      await saveNetworkConfig(configName, 'us-east-1', vpcCidr, payloadSubnets);
+      setSaveStatus('Network configuration saved successfully.');
+      loadSavedConfigs();
+      setTimeout(() => setSaveStatus(null), 3000);
+    } catch (err) {
+      setSaveStatus(`Error saving: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLoadSaved = (configId) => {
+    const selected = savedConfigs.find((c) => c.id === Number(configId));
+    if (selected) {
+      setConfigName(selected.name);
+      setVpcCidr(selected.vpc_cidr);
+      setSubnets(selected.subnets.map((s) => ({
+        name: s.name,
+        cidr: s.cidr,
+        routeTarget: s.tier === 'public' ? 'igw' : 'local',
+        tier: s.tier
+      })));
+    }
+  };
 
   const handleSubnetChange = (index, field, value) => {
     const updated = [...subnets];
@@ -222,20 +270,73 @@ export default function NetworkPlanner({ onPlanApproved }) {
           </div>
         </div>
 
-        {/* Validation Footnote & Action Button */}
+        {/* Validation Footnote & Action Buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
-          <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
-            Validation runs before deployment.
+          {savedConfigs.length > 0 && (
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: 3, textTransform: 'uppercase' }}>
+                Load Saved Configuration
+              </label>
+              <select
+                className="input-text"
+                onChange={(e) => handleLoadSaved(e.target.value)}
+                defaultValue=""
+                style={{ height: 32, fontSize: '11.5px' }}
+              >
+                <option value="" disabled>Select saved network...</option>
+                {savedConfigs.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name} ({c.vpc_cidr})</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: 3, textTransform: 'uppercase' }}>
+              Plan Name
+            </label>
+            <input
+              type="text"
+              className="input-text"
+              value={configName}
+              onChange={(e) => setConfigName(e.target.value)}
+              placeholder="Lab Network Plan"
+              style={{ height: 32, fontSize: '12px' }}
+            />
           </div>
-          <button
-            type="button"
-            onClick={handleValidate}
-            disabled={loading}
-            className="btn btn-primary"
-            style={{ width: '100%', height: 36 }}
-          >
-            {loading ? 'Validating allocation...' : 'Validate configuration'}
-          </button>
+
+          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+            <button
+              type="button"
+              onClick={handleValidate}
+              disabled={loading}
+              className="btn btn-primary"
+              style={{ flex: 1, height: 36 }}
+            >
+              {loading ? 'Validating...' : 'Validate'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveConfig}
+              disabled={saving}
+              className="btn btn-secondary"
+              style={{ height: 36, whiteSpace: 'nowrap' }}
+            >
+              {saving ? 'Saving...' : 'Save Plan'}
+            </button>
+          </div>
+
+          {saveStatus && (
+            <div style={{
+              fontSize: '11px',
+              padding: '6px 10px',
+              borderRadius: 4,
+              backgroundColor: saveStatus.startsWith('Error') ? 'rgba(239, 68, 68, 0.08)' : 'rgba(71, 119, 100, 0.08)',
+              color: saveStatus.startsWith('Error') ? 'var(--status-danger)' : 'var(--accent)'
+            }}>
+              {saveStatus}
+            </div>
+          )}
         </div>
 
         {/* Presets Bar */}

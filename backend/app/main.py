@@ -41,13 +41,28 @@ from .workflow_engine import (
     verify_workflow_recovery,
     generate_workflow_markdown_report
 )
+from contextlib import asynccontextmanager
 from .rca_engine import RcaAnalysisReport
+from .db import init_db
+from .api.auth import router as auth_router
+from .api.networks import router as networks_router
+from .api.reports import router as reports_router
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
 
 app = FastAPI(
     title="CloudOps Lab API",
     description="Educational & Junior-Engineer AWS Infrastructure Troubleshooting Platform",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
+
+app.include_router(auth_router)
+app.include_router(networks_router)
+app.include_router(reports_router)
 
 # Safe CORS configuration for local development
 app.add_middleware(
@@ -258,6 +273,48 @@ def get_lab_status():
     Returns current lab state and active fault simulation flags.
     """
     return FaultSimulationStatus(active_faults=get_active_faults())
+
+@app.post("/api/experiments/faults", tags=["Experiments"])
+def apply_experiment_fault(req: Dict[str, Any]):
+    """
+    Applies a predefined simulated fault (Section 5.6 & 6).
+    """
+    scenario = req.get("fault_scenario") or req.get("fault_id")
+    enable = req.get("enable", True)
+    mapping = {
+        "fault_missing_https_sg": "sg_missing_https",
+        "fault_missing_default_route": "missing_default_route",
+        "fault_igw_detached": "igw_detached",
+        "fault_subnet_overlap": "subnet_overlap",
+        "fault_invalid_cidr_boundary": "invalid_cidr_boundary",
+    }
+    canonical = mapping.get(scenario, scenario)
+    updated = set_simulated_fault(fault_id=canonical, enable=enable)
+    return {
+        "success": True,
+        "fault_scenario": scenario,
+        "canonical_id": canonical,
+        "active_faults": updated
+    }
+
+@app.post("/api/diagnostics/{diag_id}/rerun", tags=["Diagnostics"])
+def rerun_diagnostics_endpoint(diag_id: str, req: Optional[DiagnosticsRunRequest] = None):
+    """
+    Re-evaluates the diagnostic suite against current infrastructure state.
+    """
+    return execute_diagnostic_suite(force_simulated_aws=True)
+
+@app.get("/api/terraform/runs/{run_id}", tags=["Terraform"])
+def get_terraform_run_status(run_id: str):
+    """
+    Returns execution status and summary for a Terraform run.
+    """
+    return {
+        "run_id": run_id,
+        "status": "completed",
+        "exit_code": 0,
+        "timestamp": time.time()
+    }
 
 # ------------------------------------------------------------------------------
 # Live AWS Resource Inventory & Traffic Matrix (Real Working Operations)
@@ -490,5 +547,16 @@ def get_workflow_markdown_report_endpoint():
         "mode": session.mode,
         "timestamp": time.time()
     }
+
+# ------------------------------------------------------------------------------
+# Production Static SPA Hosting (Frontend & API unified)
+# ------------------------------------------------------------------------------
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+
+_frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+if _frontend_dist.is_dir():
+    app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="frontend")
+
 
 

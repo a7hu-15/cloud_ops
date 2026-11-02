@@ -109,3 +109,85 @@ class FaultSimulationRequest(BaseModel):
 
 class FaultSimulationStatus(BaseModel):
     active_faults: Dict[str, bool]
+
+# ------------------------------------------------------------------------------
+# Authentication Schemas (Section 3)
+# ------------------------------------------------------------------------------
+class RegisterRequest(BaseModel):
+    full_name: str = Field(..., min_length=2, max_length=128)
+    email: str = Field(..., min_length=3, max_length=254)
+    password: str = Field(..., min_length=12, max_length=128)
+    confirm_password: str = Field(..., min_length=12, max_length=128)
+    terms_accepted: bool = Field(...)
+
+class VerifyEmailRequest(BaseModel):
+    token: str = Field(..., min_length=10)
+
+class LoginRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=254)
+    password: str = Field(...)
+
+class ForgotPasswordRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=254)
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(..., min_length=10)
+    new_password: str = Field(..., min_length=12, max_length=128)
+    confirm_password: str = Field(..., min_length=12, max_length=128)
+
+class UserProfileResponse(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    is_verified: bool
+    created_at: str
+
+# ------------------------------------------------------------------------------
+# Network Configuration & Topology Schemas (Section 4.2 C, D, 5.1, 5.2, 6)
+# ------------------------------------------------------------------------------
+class SubnetConfigItem(BaseModel):
+    name: str = Field(..., min_length=1, max_length=64)
+    cidr: str = Field(..., description="IPv4 CIDR block")
+    tier: Literal["public", "private"] = Field(default="public")
+
+class NetworkConfigCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=128)
+    region: str = Field(default="us-east-1", max_length=32)
+    vpc_cidr: str = Field(default="10.0.0.0/16")
+    subnets: List[SubnetConfigItem]
+
+class NetworkConfigUpdateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=128)
+    region: str = Field(default="us-east-1", max_length=32)
+    vpc_cidr: str = Field(default="10.0.0.0/16")
+    subnets: List[SubnetConfigItem]
+
+class TopologyGenerateRequest(BaseModel):
+    vpc_cidr: str = Field(default="10.0.0.0/16")
+    subnets: List[SubnetConfigItem]
+    region: str = Field(default="us-east-1")
+
+# ------------------------------------------------------------------------------
+# Predefined Fault Scenarios (Section 5.6, 6)
+# ------------------------------------------------------------------------------
+class ExperimentFaultRequest(BaseModel):
+    fault_scenario: Literal[
+        "fault_missing_https_sg",
+        "fault_missing_default_route",
+        "fault_igw_detached",
+        "fault_subnet_overlap",
+        "fault_invalid_cidr_boundary"
+    ]
+    enable: bool = True
+
+# ------------------------------------------------------------------------------
+# Experiment Report Schemas (Section 4.2 G, 5.10, 6)
+# ------------------------------------------------------------------------------
+class SaveExperimentReportRequest(BaseModel):
+    network_config_id: Optional[int] = None
+    mode: str = "simulation"
+    fault_scenario: Optional[str] = None
+    initial_result: Dict[str, Any]
+    remediation: Optional[Dict[str, Any]] = None
+    final_result: Optional[Dict[str, Any]] = None
+    recovery_status: str = "pending"

@@ -6,7 +6,8 @@ import {
   runWorkflowDiagnostics,
   applyWorkflowRemediation,
   verifyWorkflowRecovery,
-  getWorkflowReportMarkdown
+  getWorkflowReportMarkdown,
+  saveExperimentReport
 } from '../api/client';
 
 export default function TroubleshootingWorkflow() {
@@ -15,6 +16,7 @@ export default function TroubleshootingWorkflow() {
   const [actionLoading, setActionLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [markdownReport, setMarkdownReport] = useState(null);
+  const [saveReportStatus, setSaveReportStatus] = useState(null);
 
   // Safety confirmation modal state for Step 5
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -598,6 +600,33 @@ export default function TroubleshootingWorkflow() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <button
                 type="button"
+                onClick={async () => {
+                  setSaveReportStatus('Saving report...');
+                  try {
+                    await saveExperimentReport({
+                      mode: session.mode,
+                      fault_scenario: session.injected_fault_id,
+                      initial_result: session.fault_diagnostics || {},
+                      remediation: {
+                        root_cause: session.rca_report?.title || 'Diagnostic Evaluation',
+                        terraform_diff: session.applied_remediation?.diff_preview || session.rca_report?.remediation?.diff_preview || ''
+                      },
+                      final_result: session.recovery_result || {},
+                      recovery_status: session.recovery_result?.recovered ? 'recovered' : 'unresolved'
+                    });
+                    setSaveReportStatus('Report saved to your account successfully.');
+                    setTimeout(() => setSaveReportStatus(null), 3000);
+                  } catch (err) {
+                    setSaveReportStatus(`Sign-in note: ${err.message}`);
+                  }
+                }}
+                className="btn btn-secondary"
+                style={{ height: 30, fontSize: '11.5px' }}
+              >
+                Save to My Reports
+              </button>
+              <button
+                type="button"
                 onClick={() => downloadReportFile(markdownReport || '', `cloudops-lab-report-${session.session_id}.md`, 'text/markdown')}
                 className="btn btn-secondary"
                 style={{ height: 30, fontSize: '11.5px' }}
@@ -614,6 +643,19 @@ export default function TroubleshootingWorkflow() {
               </button>
             </div>
           </div>
+
+          {saveReportStatus && (
+            <div style={{
+              fontSize: '11px',
+              padding: '6px 12px',
+              borderRadius: 4,
+              backgroundColor: saveReportStatus.includes('successfully') ? 'rgba(71, 119, 100, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+              color: saveReportStatus.includes('successfully') ? 'var(--accent)' : 'var(--status-danger)',
+              marginBottom: 10
+            }}>
+              {saveReportStatus}
+            </div>
+          )}
 
           {markdownReport && (
             <pre style={{

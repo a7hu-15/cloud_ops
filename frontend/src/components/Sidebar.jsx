@@ -1,6 +1,14 @@
 import React from 'react';
 
-export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeFaultCount }) {
+export default function Sidebar({
+  activeTab,
+  setActiveTab,
+  systemHealth,
+  activeFaultCount,
+  currentUser,
+  onOpenAuth,
+  onLogout
+}) {
   const navItems = [
     {
       id: 'workflow',
@@ -29,8 +37,19 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
       )
     },
     {
+      id: 'diagnostics',
+      label: 'Diagnostics',
+      icon: (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+      )
+    },
+    {
       id: 'terraform',
-      label: 'Terraform Engine',
+      label: 'Terraform Review',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="16 18 22 12 16 6"/>
@@ -39,13 +58,14 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
       )
     },
     {
-      id: 'diagnostics',
-      label: 'Diagnostics Hub',
+      id: 'reports',
+      label: 'Experiment Report',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="16" x2="12" y2="12"/>
-          <line x1="12" y1="8" x2="12.01" y2="8"/>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
         </svg>
       )
     },
@@ -73,8 +93,8 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
     }
   ];
 
-  const isConnected = systemHealth && systemHealth.status === 'healthy';
-  const isAwsLive = systemHealth && systemHealth.aws_credentials_configured;
+  const isConnected = Boolean(systemHealth && systemHealth.status === 'healthy');
+  const isAwsLive = Boolean(systemHealth && systemHealth.aws_credentials_configured);
 
   return (
     <aside style={{
@@ -98,7 +118,7 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
           alignItems: 'center',
           gap: 10
         }}>
-          {/* Subtle geometric node icon */}
+          {/* Geometric node icon */}
           <div style={{
             width: 26,
             height: 26,
@@ -122,26 +142,12 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
               CloudOps Lab
             </span>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-              Infrastructure Console
+              AWS Network Platform
             </span>
           </div>
         </div>
 
-        {/* Region Target Bar */}
-        <div style={{
-          padding: '8px 18px',
-          borderBottom: '1px solid var(--border-subtle)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          fontSize: '11px',
-          color: 'var(--text-secondary)'
-        }}>
-          <span>Region</span>
-          <span className="font-mono" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>us-east-1</span>
-        </div>
-
-        {/* Navigation list */}
+        {/* Navigation List */}
         <nav style={{ padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
@@ -174,6 +180,11 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
                   {item.icon}
                 </span>
                 <span style={{ flex: 1 }}>{item.label}</span>
+                {item.id === 'workflow' && (
+                  <span className="status-tag status-tag-neutral" style={{ fontSize: '9px', padding: '1px 4px' }}>
+                    7-STEP
+                  </span>
+                )}
                 {item.id === 'faults' && activeFaultCount > 0 && (
                   <span className="status-tag status-tag-warning" style={{ fontSize: '9.5px', padding: '1px 5px' }}>
                     {activeFaultCount}
@@ -185,38 +196,80 @@ export default function Sidebar({ activeTab, setActiveTab, systemHealth, activeF
         </nav>
       </div>
 
-      {/* Telemetry Footer */}
+      {/* User & Telemetry Footer */}
       <div style={{
-        padding: '12px 16px',
+        padding: '12px 14px',
         borderTop: '1px solid var(--border-color)',
         display: 'flex',
         flexDirection: 'column',
-        gap: 6,
-        fontSize: '11px'
+        gap: 10
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ color: 'var(--text-muted)' }}>Backend</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: isConnected ? 'var(--status-success)' : 'var(--status-error)', fontWeight: 500 }}>
-            <span className={`dot-indicator ${isConnected ? 'green' : 'red'}`}></span>
-            {isConnected ? 'Connected' : 'Offline'}
-          </span>
-        </div>
+        {/* User Account Tile */}
+        {currentUser ? (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+            padding: '8px 10px',
+            backgroundColor: 'var(--bg-canvas)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 5
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                {currentUser.full_name}
+              </span>
+              <span className="status-tag status-tag-success" style={{ fontSize: '9px', padding: '1px 4px' }}>
+                Verified
+              </span>
+            </div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {currentUser.email}
+            </div>
+            <button
+              type="button"
+              onClick={onLogout}
+              style={{
+                marginTop: 4,
+                padding: '3px 0',
+                background: 'none',
+                border: 'none',
+                color: 'var(--status-danger)',
+                fontSize: '11px',
+                textAlign: 'left',
+                cursor: 'pointer'
+              }}
+            >
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => onOpenAuth('login')}
+            style={{ width: '100%', fontSize: '11.5px', height: 32, justifyContent: 'center' }}
+          >
+            Sign in / Register
+          </button>
+        )}
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ color: 'var(--text-muted)' }}>Engine</span>
-          <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>
-            {isAwsLive ? 'Live Cloud' : 'Simulated'}
-          </span>
-        </div>
-
-        {activeFaultCount > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 2 }}>
-            <span style={{ color: 'var(--status-warning)' }}>Active Faults</span>
-            <span className="status-tag status-tag-warning" style={{ fontSize: '9.5px', padding: '1px 5px' }}>
-              {activeFaultCount} active
+        {/* Telemetry info */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '10.5px', color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Backend</span>
+            <span style={{ color: isConnected ? 'var(--status-success)' : 'var(--status-error)', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span className={`dot-indicator ${isConnected ? 'green' : 'red'}`}></span>
+              {isConnected ? 'Operational' : 'Offline'}
             </span>
           </div>
-        )}
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Mode</span>
+            <span style={{ color: 'var(--text-secondary)' }}>
+              {isAwsLive ? 'Live AWS' : 'Simulation'}
+            </span>
+          </div>
+        </div>
       </div>
     </aside>
   );

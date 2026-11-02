@@ -7,7 +7,9 @@ import DiagnosticsHub from './components/DiagnosticsHub';
 import ResourceInventory from './components/ResourceInventory';
 import FaultInjectionLab from './components/FaultInjectionLab';
 import TroubleshootingWorkflow from './components/TroubleshootingWorkflow';
-import { checkHealth, getLabStatus } from './api/client';
+import ExperimentReport from './components/ExperimentReport';
+import AuthModal from './components/AuthModal';
+import { checkHealth, getLabStatus, getCurrentUser, logoutAccount } from './api/client';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('workflow');
@@ -15,6 +17,11 @@ export default function App() {
   const [activeFaultCount, setActiveFaultCount] = useState(0);
   const [approvedPlan, setApprovedPlan] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState('login');
 
   // Theme Management: Light & Dark
   const [theme, setTheme] = useState(() => {
@@ -32,9 +39,36 @@ export default function App() {
 
   useEffect(() => {
     fetchHealthAndStatus();
+    checkAuthSession();
+
+    // Check for query parameters (?token=... or ?mode=...)
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const path = window.location.pathname;
+
+    if (token) {
+      if (path.includes('reset') || params.get('mode') === 'reset') {
+        setAuthModalMode('reset');
+      } else {
+        setAuthModalMode('verify');
+      }
+      setAuthModalOpen(true);
+    }
+
     const interval = setInterval(fetchHealthAndStatus, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  const checkAuthSession = async () => {
+    try {
+      const user = await getCurrentUser();
+      if (user) {
+        setCurrentUser(user);
+      }
+    } catch {
+      // Unauthenticated session
+    }
+  };
 
   const fetchHealthAndStatus = async () => {
     setIsRefreshing(true);
@@ -56,6 +90,21 @@ export default function App() {
     }
   };
 
+  const handleOpenAuth = (mode = 'login') => {
+    setAuthModalMode(mode);
+    setAuthModalOpen(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutAccount();
+    } catch {
+      // ignore
+    } finally {
+      setCurrentUser(null);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-canvas)' }}>
       {/* Left Navigation Sidebar */}
@@ -64,6 +113,9 @@ export default function App() {
         setActiveTab={setActiveTab}
         systemHealth={systemHealth}
         activeFaultCount={activeFaultCount}
+        currentUser={currentUser}
+        onOpenAuth={handleOpenAuth}
+        onLogout={handleLogout}
       />
 
       {/* Main Console Canvas */}
@@ -75,6 +127,10 @@ export default function App() {
           isRefreshing={isRefreshing}
           theme={theme}
           onToggleTheme={toggleTheme}
+          currentUser={currentUser}
+          onOpenAuth={handleOpenAuth}
+          onLogout={handleLogout}
+          systemHealth={systemHealth}
         />
 
         {/* Workspace Canvas */}
@@ -101,6 +157,10 @@ export default function App() {
             <DiagnosticsHub />
           )}
 
+          {activeTab === 'reports' && (
+            <ExperimentReport onReturnToWorkflow={() => setActiveTab('workflow')} />
+          )}
+
           {activeTab === 'inventory' && (
             <ResourceInventory />
           )}
@@ -110,6 +170,17 @@ export default function App() {
           )}
         </main>
       </div>
+
+      {/* Authentication & Account Verification Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        initialMode={authModalMode}
+        onAuthSuccess={(user) => {
+          setCurrentUser(user);
+          setAuthModalOpen(false);
+        }}
+      />
     </div>
   );
 }

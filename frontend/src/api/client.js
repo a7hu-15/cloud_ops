@@ -190,3 +190,186 @@ export async function getPacketTrace(targetPort = 443, originIp = '198.51.100.25
 }
 
 
+
+// =============================================================================
+// Authentication & User Accounts API (Section 3)
+// =============================================================================
+
+export async function registerAccount(fullName, email, password, confirmPassword, termsAccepted) {
+  const res = await fetch(`${API_BASE}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({
+      full_name: fullName,
+      email,
+      password,
+      confirm_password: confirmPassword,
+      terms_accepted: termsAccepted
+    })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Registration failed');
+  }
+  return data;
+}
+
+export async function verifyEmailToken(token) {
+  const res = await fetch(`${API_BASE}/api/auth/verify-email`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ token })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Email verification failed');
+  }
+  return data;
+}
+
+export async function loginAccount(email, password) {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email, password })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Login failed');
+  }
+  return data;
+}
+
+export async function logoutAccount() {
+  const res = await fetch(`${API_BASE}/api/auth/logout`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include'
+  });
+  return res.json().catch(() => ({}));
+}
+
+export async function getCurrentUser() {
+  const res = await fetch(`${API_BASE}/api/auth/me`, {
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    return null;
+  }
+  return res.json();
+}
+
+export async function requestPasswordReset(email) {
+  const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Password reset request failed');
+  }
+  return data;
+}
+
+export async function resetAccountPassword(token, newPassword, confirmPassword) {
+  const res = await fetch(`${API_BASE}/api/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({
+      token,
+      new_password: newPassword,
+      confirm_password: confirmPassword
+    })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Password reset failed');
+  }
+  return data;
+}
+
+// =============================================================================
+// Persisted Networks & Topology API (Section 4.2 C, D, 6)
+// =============================================================================
+
+export async function saveNetworkConfig(name, region, vpcCidr, subnets) {
+  const res = await fetch(`${API_BASE}/api/networks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ name, region, vpc_cidr: vpcCidr, subnets })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Failed to save network configuration');
+  }
+  return data;
+}
+
+export async function listNetworkConfigs() {
+  const res = await fetch(`${API_BASE}/api/networks`, {
+    credentials: 'include'
+  });
+  if (!res.ok) throw new Error('Failed to list network configurations');
+  return res.json();
+}
+
+export async function getNetworkTopology(configId) {
+  const res = await fetch(`${API_BASE}/api/networks/${configId}/topology`, {
+    method: 'POST',
+    credentials: 'include'
+  });
+  if (!res.ok) throw new Error('Failed to generate network topology');
+  return res.json();
+}
+
+export async function generateAdhocTopology(vpcCidr, subnets, region = 'us-east-1') {
+  const res = await fetch(`${API_BASE}/api/networks/topology`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ vpc_cidr: vpcCidr, subnets, region })
+  });
+  if (!res.ok) throw new Error('Failed to generate topology');
+  return res.json();
+}
+
+// =============================================================================
+// Persisted Reports API (Section 4.2 G, 6)
+// =============================================================================
+
+export async function listReports() {
+  const res = await fetch(`${API_BASE}/api/reports`, {
+    credentials: 'include'
+  });
+  if (!res.ok) throw new Error('Failed to list experiment reports');
+  return res.json();
+}
+
+export async function getReportDetails(reportId) {
+  const res = await fetch(`${API_BASE}/api/reports/${reportId}`, {
+    credentials: 'include'
+  });
+  if (!res.ok) throw new Error('Failed to retrieve experiment report');
+  return res.json();
+}
+
+export async function saveExperimentReport(data) {
+  const res = await fetch(`${API_BASE}/api/reports`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to save experiment report');
+  }
+  return res.json();
+}

@@ -1,14 +1,27 @@
 import React from 'react';
 
-export default function TopNav({ activeTab, onRefresh, isRefreshing, theme, onToggleTheme }) {
+export default function TopNav({
+  activeTab,
+  onRefresh,
+  isRefreshing,
+  theme,
+  onToggleTheme,
+  currentUser,
+  onOpenAuth,
+  onLogout,
+  systemHealth
+}) {
   const titles = {
-    workflow: 'Troubleshooting & Recovery Engine (Signature Workflow)',
-    planner: 'Network Planner & IPv4 Allocation',
-    terraform: 'Terraform Infrastructure Pipeline',
-    diagnostics: 'Multi-Tier Diagnostics & Verification',
+    workflow: 'Recovery Engine (7-Step Workflow)',
+    planner: 'Network Planner & Topology',
+    terraform: 'Terraform Review & Pipeline',
+    diagnostics: 'Diagnostics Hub',
+    reports: 'Experiment Reports & Audit',
     inventory: 'Resource Inventory & Traffic Matrix',
-    faults: 'Fault Injection & Chaos Engineering'
+    faults: 'Fault Injection Lab'
   };
+
+  const isAwsLive = Boolean(systemHealth && systemHealth.aws_credentials_configured);
 
   return (
     <header style={{
@@ -33,23 +46,76 @@ export default function TopNav({ activeTab, onRefresh, isRefreshing, theme, onTo
         </span>
       </div>
 
-      {/* Utilities: VPC chip, Theme Toggle, Refresh */}
+      {/* Utilities: Region, Mode, Theme, User Menu, Refresh */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        {/* VPC boundary chip */}
+        {/* Region Chip */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: 6,
-          fontSize: '12px',
+          fontSize: '11.5px',
           color: 'var(--text-secondary)',
-          padding: '4px 10px',
-          backgroundColor: 'var(--bg-surface-subtle)',
+          padding: '3px 8px',
+          backgroundColor: 'var(--bg-canvas)',
           borderRadius: 4,
           border: '1px solid var(--border-color)'
         }}>
-          <span style={{ color: 'var(--text-muted)' }}>VPC:</span>
-          <span className="font-mono" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>10.0.0.0/16</span>
+          <span style={{ color: 'var(--text-muted)' }}>Region:</span>
+          <span className="font-mono" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>us-east-1</span>
         </div>
+
+        {/* Operational Mode Pill (Simulation or Live AWS) */}
+        <span className={`status-tag ${isAwsLive ? 'status-tag-success' : 'status-tag-neutral'}`} style={{ fontSize: '11px', padding: '3px 8px' }}>
+          {isAwsLive ? 'Live AWS' : 'Simulation'}
+        </span>
+
+        {/* User Account / Profile Menu */}
+        {currentUser ? (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '3px 10px',
+            backgroundColor: 'var(--bg-canvas)',
+            borderRadius: 4,
+            border: '1px solid var(--border-color)',
+            fontSize: '12px'
+          }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+              {currentUser.full_name}
+            </span>
+            <button
+              type="button"
+              onClick={onLogout}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--status-danger)',
+                cursor: 'pointer',
+                fontSize: '11.5px',
+                padding: '0 0 0 4px',
+                borderLeft: '1px solid var(--border-subtle)',
+                marginLeft: 4
+              }}
+              title="Sign out of workspace"
+            >
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onOpenAuth('login')}
+            className="btn btn-secondary"
+            style={{ padding: '5px 12px', fontSize: '12px', height: 32 }}
+          >
+            Sign in
+          </button>
+        )}
 
         {/* Dark / Light Theme Toggle */}
         <button
@@ -59,7 +125,6 @@ export default function TopNav({ activeTab, onRefresh, isRefreshing, theme, onTo
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
         >
           {theme === 'dark' ? (
-            /* Sun Icon for Light Mode */
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="5"/>
               <line x1="12" y1="1" x2="12" y2="3"/>
@@ -72,7 +137,6 @@ export default function TopNav({ activeTab, onRefresh, isRefreshing, theme, onTo
               <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
             </svg>
           ) : (
-            /* Moon Icon for Dark Mode */
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
             </svg>

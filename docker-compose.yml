@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  cloudops-lab:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cloudops-lab
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=production
+      - CLOUDOPS_DB_PATH=/app/backend/cloudops.db
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME:-ashuchaudhary112004@gmail.com}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-yzqcwcxrbymkjwnn}
+      - SENDER_EMAIL=${SENDER_EMAIL:-ashuchaudhary112004@gmail.com}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+    volumes:
+      - cloudops-data:/app/backend
+
+volumes:
+  cloudops-data:
