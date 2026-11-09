@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.13" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>temp_report_build</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      color: light-dark(#1a1a1a, #fdfdfd);
+      background-color: #fdfdfd;
+      background-color: light-dark(#fdfdfd, #1a1a1a);
+      color-scheme: light dark;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        color-scheme: light only;
+      }
+      html, body, pre, code {
+        background-color: transparent;
+      }
+      body, a, a:visited, blockquote {
+        color: black;
+      }
+      pre, code {
+        padding: 0;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a, a:visited {
+      color: inherit;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid;
+      border-color: #e6e6e6;
+      border-color: light-dark(#e6e6e6, #4c4c4c);
+      color: #606060;
+      color: light-dark(#606060, #b6b6b6);
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid currentColor;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid currentColor;
+      border-bottom: 1px solid currentColor;
+    }
+    th {
+      border-top: 1px solid currentColor;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <script defer=""
+  src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"
+  type="text/javascript"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'neutral',
+                flowchart: { curve: 'basis', htmlLabels: true },
+                securityLevel: 'loose'
+            });
+        });
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+        @page {
+            size: A4;
+            margin: 24mm 18mm 24mm 18mm;
+            @top-right {
+                content: "CloudOps Lab — Systems Architecture Specification";
+                font-family: 'Inter', sans-serif;
+                font-size: 8pt;
+                color: #64748b;
+                border-bottom: 1px solid #e2e8f0;
+                padding-bottom: 4px;
+            }
+            @bottom-left {
+                content: "CLOUDOPS-SPEC-TR-2026-V1";
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 7.5pt;
+                color: #94a3b8;
+            }
+            @bottom-right {
+                content: "Page " counter(page);
+                font-family: 'Inter', sans-serif;
+                font-size: 8.5pt;
+                color: #0284c7;
+                font-weight: 600;
+            }
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 10.5pt;
+            line-height: 1.7;
+            color: #1e293b;
+            background: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .cover-wrapper {
+            height: 94vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 3px double #0284c7;
+            padding: 40px;
+            box-sizing: border-box;
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+        }
+
+        .cover-header {
+            text-align: center;
+            border-bottom: 2px solid #0284c7;
+            padding-bottom: 20px;
+        }
+
+        .university-name {
+            font-size: 22pt;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #0f172a;
+        }
+
+        .university-sub {
+            font-size: 10pt;
+            font-weight: 600;
+            color: #0369a1;
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .academic-year {
+            font-size: 9.5pt;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .cover-body {
+            margin: auto 0;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .project-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9pt;
+            color: #0284c7;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .main-title {
+            font-size: 32pt;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 10px 0;
+            line-height: 1.15;
+            border: none;
+            padding: 0;
+        }
+
+        .sub-title {
+            font-size: 14pt;
+            font-weight: 600;
+            color: #0369a1;
+            margin: 0 auto 20px auto;
+            max-width: 90%;
+            line-height: 1.4;
+            border: none;
+            padding: 0;
+        }
+
+        .project-desc {
+            font-size: 10.5pt;
+            color: #475569;
+            max-width: 85%;
+            margin: 0 auto;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            font-size: 9pt;
+        }
+
+        .meta-label {
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+            font-size: 8.5pt;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-val {
+            color: #334155;
+            margin-bottom: 3px;
+        }
+
+        .page-break {
+            page-break-after: always;
+            break-after: page;
+        }
+
+        /* Chapter Headings */
+        h1 {
+            font-size: 20pt;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 2px solid #0284c7;
+            padding-bottom: 8px;
+            margin-top: 36pt;
+            margin-bottom: 16pt;
+            page-break-before: always;
+        }
+
+        /* Prevent page break on Table of Contents */
+        #table-of-contents, #table-of-contents + h1 {
+            page-break-before: avoid !important;
+        }
+
+        h2 {
+            font-size: 15pt;
+            font-weight: 700;
+            color: #0369a1;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 6px;
+            margin-top: 28pt;
+            margin-bottom: 14pt;
+            page-break-before: always;
+        }
+
+        h3 {
+            font-size: 12pt;
+            font-weight: 600;
+            color: #1e293b;
+            margin-top: 20pt;
+            margin-bottom: 8pt;
+            page-break-after: avoid;
+        }
+
+        p, li {
+            text-align: justify;
+            color: #334155;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16pt 0;
+            font-size: 9pt;
+            page-break-inside: avoid;
+        }
+
+        table, th, td {
+            border: 1px solid #cbd5e1;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-weight: 700;
+            padding: 8px 10px;
+            text-align: left;
+        }
+
+        td {
+            padding: 7px 10px;
+            color: #334155;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9pt;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            padding: 2px 5px;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+
+        pre {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 12pt;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8.5pt;
+            line-height: 1.5;
+            page-break-inside: avoid;
+            margin: 14pt 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            border: none;
+            padding: 0;
+            font-size: inherit;
+        }
+
+        .mermaid-container {
+            page-break-inside: avoid;
+            margin: 20pt 0;
+            padding: 15px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        blockquote {
+            border-left: 4px solid #0284c7;
+            background: #f0f9ff;
+            color: #0369a1;
+            padding: 8pt 14pt;
+            margin: 14pt 0;
+            font-style: normal;
+        }
+    </style>
+    
+</head>
+<body>
+
+    <div class="cover-wrapper">
+        <div class="cover-header">
+            <div class="university-name">SRM UNIVERSITY</div>
+            <div class="university-sub">DELHI-NCR, SONEPAT &bull; DEPARTMENT OF COMPUTER SCIENCE & ENGINEERING</div>
+            <div class="academic-year">Academic Year 2026&ndash;27</div>
+        </div>
+
+        <div class="cover-body">
+            <div class="project-tag">ENTERPRISE CLOUD SYSTEMS ENGINEERING REPORT</div>
+            <h1 class="main-title">CloudOps Lab</h1>
+            <h2 class="sub-title">Automated AWS Infrastructure Analysis &amp; Network Self-Healing Platform</h2>
+            <p class="project-desc">
+                An evidence-based cloud networking diagnostic and automated remediation platform. 
+                Models Virtual Private Cloud (VPC) SDN primitives, audits Layer 1&ndash;4 configuration invariants, 
+                isolates deterministic root causes, synthesizes declarative Terraform remediation, 
+                and empirically certifies zero-regression recovery.
+            </p>
+        </div>
+
+        <div class="meta-grid">
+            <div class="meta-col">
+                <div class="meta-label">SUBMITTED BY:</div>
+                <div class="meta-val"><strong>Ashutosh Chaudhary</strong> (11723210015)</div>
+                <div class="meta-val"><strong>Daksh Grover</strong> (11723210013)</div>
+                <div class="meta-val"><strong>Divesh Sharma</strong> (11723210014)</div>
+                <div class="meta-val"><strong>Nitin</strong> (11723210016)</div>
+            </div>
+            <div class="meta-col">
+                <div class="meta-label">DEPLOYMENT SPECIFICATIONS:</div>
+                <div class="meta-val"><strong>Live Cloud Endpoint:</strong> http://44.199.232.34/</div>
+                <div class="meta-val"><strong>AWS Host Region:</strong> us-east-1 (US East)</div>
+                <div class="meta-val"><strong>AWS Resource Group:</strong> cloudops-lab-resources</div>
+                <div class="meta-val"><strong>Source Repository:</strong> https://github.com/a7hu-15/cloud_ops.git</div>
+                <div class="meta-val"><strong>Document ID:</strong> CLOUDOPS-SPEC-TR-2026-V1</div>
+            </div>
+        </div>
+    </div>
+    <div class="page-break"></div>
+    
+<h1 id="cloudops-lab">CloudOps Lab</h1>
+<h2
+id="automated-aws-infrastructure-analysis-network-self-healing-platform">Automated
+AWS Infrastructure Analysis &amp; Network Self-Healing Platform</h2>
+<h3
+id="comprehensive-technical-report-enterprise-system-architecture-specification">Comprehensive
+Technical Report &amp; Enterprise System Architecture Specification</h3>
+<hr />
+<p><strong>Document Identification:</strong>
+CLOUDOPS-SPEC-TR-2026-V1<br />
+<strong>Project Name:</strong> CloudOps Lab (AWS Infrastructure Analysis
+&amp; Network Troubleshooting Platform)<br />
+<strong>Classification:</strong> Enterprise Cloud Engineering &amp; SRE
+Platform Specification<br />
+<strong>Version:</strong> 1.0.0 (Production Master)<br />
+<strong>Primary Repository:</strong>
+<code>https://github.com/a7hu-15/cloud_ops.git</code><br />
+<strong>Live Production Host:</strong>
+<code>http://44.199.232.34/</code> (Amazon Web Services, Region
+<code>us-east-1</code>)<br />
+<strong>AWS Resource Group:</strong> <code>cloudops-lab-resources</code>
+(AWS Account ID: <code>757952140199</code>)<br />
+<strong>Date of Publication:</strong> November 2026</p>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><a href="#1-executive-summary--abstract">Executive Summary &amp;
+Abstract</a></li>
+<li><a
+href="#2-enterprise-problem-statement--operational-challenges">Enterprise
+Problem Statement &amp; Operational Challenges</a></li>
+<li><a
+href="#3-platform-use-cases--production-value-proposition">Platform Use
+Cases &amp; Production Value Proposition</a></li>
+<li><a
+href="#4-platform-scope-boundaries--operational-constraints">Platform
+Scope Boundaries &amp; Operational Constraints</a></li>
+<li><a
+href="#5-complete-technology-stack--architectural-principles">Complete
+Technology Stack &amp; Architectural Principles</a></li>
+<li><a
+href="#6-system-architecture--multi-tier-module-decomposition">System
+Architecture &amp; Multi-Tier Module Decomposition</a></li>
+<li><a
+href="#7-pre-deployment-network-planning--cidr-mathematics-engine">Pre-Deployment
+Network Planning &amp; CIDR Mathematics Engine</a></li>
+<li><a href="#8-the-10-point-automated-diagnostic-audit-catalogue">The
+10-Point Automated Diagnostic Audit Catalogue</a></li>
+<li><a
+href="#9-deterministic-root-cause-analysis-rca-engine">Deterministic
+Root-Cause Analysis (RCA) Engine</a></li>
+<li><a
+href="#10-declarative-infrastructure-as-code-terraform-remediation-engine">Declarative
+Infrastructure as Code (Terraform) Remediation Engine</a></li>
+<li><a
+href="#11-human-in-the-loop-safety-guardrails--access-governance">Human-in-the-Loop
+Safety Guardrails &amp; Access Governance</a></li>
+<li><a
+href="#12-the-end-to-end-7-step-self-healing-recovery-workflow">The
+End-to-End 7-Step Self-Healing Recovery Workflow</a></li>
+<li><a
+href="#13-hop-by-hop-packet-path-tracer--cloud-resource-inventory">Hop-by-Hop
+Packet Path Tracer &amp; Cloud Resource Inventory</a></li>
+<li><a
+href="#14-database-schema--entity-relationship-modeling-er-diagram">Database
+Schema &amp; Entity-Relationship Modeling (ER Diagram)</a></li>
+<li><a
+href="#15-authentication-cryptography--session-security-architecture">Authentication,
+Cryptography &amp; Session Security Architecture</a></li>
+<li><a
+href="#16-production-containerization--multi-stage-docker-architecture">Production
+Containerization &amp; Multi-Stage Docker Architecture</a></li>
+<li><a
+href="#17-automated-testing-suite--continuous-integration-pipeline">Automated
+Testing Suite &amp; Continuous Integration Pipeline</a></li>
+<li><a
+href="#18-live-cloud-infrastructure--aws-resource-group-organization">Live
+Cloud Infrastructure &amp; AWS Resource Group Organization</a></li>
+<li><a
+href="#19-audit-reporting-compliance--regulatory-verification">Audit
+Reporting, Compliance &amp; Regulatory Verification</a></li>
+<li><a href="#20-operational-runbook--administrator-guide">Operational
+Runbook &amp; Administrator Guide</a></li>
+<li><a href="#21-references-industry-standards--citations">References,
+Industry Standards &amp; Citations</a></li>
+</ol>
+<hr />
+<h2 id="executive-summary-abstract">1. Executive Summary &amp;
+Abstract</h2>
+<p>Modern enterprise cloud deployments hosted on Amazon Web Services
+(AWS) depend upon deeply interconnected, software-defined network (SDN)
+primitives. Virtual Private Clouds (VPCs), IPv4 Classless Inter-Domain
+Routing (CIDR) blocks, public and private subnet tiers, route tables,
+perimeter Internet Gateways, Elastic Network Interfaces (ENIs), and
+stateful Security Groups form a continuous chain of dependencies. When a
+service outage occurs, over 70% of network failures stem from subtle
+human configuration errors: an unassigned default route, an overlapping
+subnet allocation, an omitted security group authorization, or a
+detached perimeter gateway.</p>
+<p>To external clients, these diverse misconfigurations manifest
+identically: TCP connection timeouts, packet drops, or unreachable web
+endpoints. Traditional cloud monitoring systems (such as generic ping
+probes or synthetic HTTP checks) merely record the symptom—they fail to
+identify the underlying architectural fault or provide a safe path to
+recovery. Operations teams are consequently forced into hours of manual
+console navigation, cross-referencing disparate AWS screens, risking
+configuration drift, and executing unreviewed, unversioned fixes.</p>
+<p><strong>CloudOps Lab</strong> is an enterprise-grade automated AWS
+infrastructure analysis, diagnostic audit, deterministic root-cause
+isolation, and self-healing recovery platform. When an organization
+connects its AWS environment or network plan to CloudOps Lab: 1. The
+platform automatically models and visualizes the complete VPC
+architecture, subnet tiers, routing targets, and firewall policies. 2.
+It executes an automated <strong>10-point deterministic diagnostic
+suite</strong> covering Layer 1 through Layer 4 cloud networking
+invariants in milliseconds. 3. It utilizes a <strong>multi-factor
+deterministic Root-Cause Analysis (RCA) engine</strong> that
+systematically tests and eliminates healthy network layers, isolating
+the exact failing component with mathematical certainty and up to 100%
+confidence. 4. It synthesizes declarative <strong>HashiCorp Terraform
+Infrastructure as Code (IaC)</strong> patches to remediate the
+identified fault. 5. It enforces strict enterprise
+<strong>Human-in-the-Loop safety guardrails</strong>, requiring explicit
+operator review and token-based confirmation
+(<code>CONFIRM_REMEDIATION</code>) before changes are committed. 6. It
+executes automated <strong>post-remediation recovery
+verification</strong>, proving that the infrastructure has returned to a
+100% passing state with zero configuration regressions. 7. It issues
+tamper-proof, immutable <strong>compliance audit reports</strong> in
+GitHub Flavored Markdown and JSON formats for post-incident review and
+regulatory compliance.</p>
+<p>The platform is deployed live on Amazon Web Services in Region
+<code>us-east-1</code> at <code>http://44.199.232.34/</code>, fully
+containerized via multi-stage Docker builds, verified by 55 automated
+unit and integration tests, and maintained via continuous integration
+workflows on GitHub
+(<code>https://github.com/a7hu-15/cloud_ops.git</code>).</p>
+<hr />
+<h2 id="enterprise-problem-statement-operational-challenges">2.
+Enterprise Problem Statement &amp; Operational Challenges</h2>
+<h3
+id="the-architectural-complexity-of-aws-software-defined-networking">2.1
+The Architectural Complexity of AWS Software-Defined Networking</h3>
+<p>In an on-premises physical data center, networking components
+(switches, routers, physical firewalls, cables) are distinct, physical
+entities. In AWS, these physical layers are abstracted into
+software-defined constructs managed through APIs: * <strong>Amazon
+VPC:</strong> A logically isolated virtual network defined by an IPv4
+CIDR block. * <strong>Subnets:</strong> Segments of a VPC’s IP address
+range assigned to specific Availability Zones. * <strong>Internet
+Gateways (IGWs):</strong> Horizontally scaled, redundant VPC perimeter
+components providing bidirectional network address translation (NAT). *
+<strong>Route Tables:</strong> Dynamic routing rule tables directing
+packets to local destinations, internet gateways, virtual private
+gateways, or VPC peering endpoints. * <strong>Security Groups:</strong>
+Stateful virtual firewalls operating at the Elastic Network Interface
+(ENI) level, controlling port- and protocol-level ingress and egress
+traffic.</p>
+<p>Because these software-defined resources are tightly coupled, an
+end-to-end network transaction succeeds only if <strong>every single
+component in the path is correctly configured</strong>:</p>
+<p><span class="math display">\[\text{Path Success} =
+\text{CIDR}_{\text{valid}} \land \text{Subnet}_{\text{contained}} \land
+\text{IGW}_{\text{attached}} \land \text{Route}_{\text{default}} \land
+\text{SG}_{\text{authorized}}\]</span></p>
+<p>If any single term in this Boolean conjunction evaluates to
+<code>False</code>, the entire communication path fails.</p>
+<h3 id="critical-failure-modes-in-cloud-operations">2.2 Critical Failure
+Modes in Cloud Operations</h3>
+<p>In enterprise production operations, troubleshooting these network
+failures presents significant operational challenges:</p>
+<ol type="1">
+<li><p><strong>The “Silent Drop” Symptom Equivalence:</strong> When an
+external client attempts to connect to an EC2 instance on port 443
+(HTTPS) and experiences a timeout, the root cause could be:</p>
+<ul>
+<li>The Security Group lacks an inbound authorization rule for TCP 443
+(Layer 4 failure).</li>
+<li>The Route Table associated with the public subnet lacks a
+<code>0.0.0.0/0</code> next-hop to the Internet Gateway (Layer 3
+failure).</li>
+<li>The Internet Gateway exists in the AWS region but is in a
+<code>detached</code> state from the VPC (Perimeter failure).</li>
+<li>The subnet CIDR is overlapping with an existing network, causing
+routing conflicts (Layer 1/2 failure). To traditional APM (Application
+Performance Monitoring) tools, all four scenarios generate the exact
+same error: <code>ETIMEDOUT</code>.</li>
+</ul></li>
+<li><p><strong>High Mean Time to Detect (MTTD) and Resolve
+(MTTR):</strong> Site Reliability Engineers (SREs) typically spend 45 to
+120 minutes during a major incident clicking through disparate AWS
+Management Console menus (VPC Dashboard, Route Tables, Subnet
+associations, EC2 Security Groups, Network ACLs) to identify which
+component is blocking traffic.</p></li>
+<li><p><strong>Configuration Drift and Production Risk:</strong> Under
+the pressure of production outages, engineers frequently execute ad-hoc,
+unreviewed manual modifications directly in the AWS web console. An
+engineer attempting to fix HTTPS connectivity might inadvertently add an
+unrestricted rule (<code>0.0.0.0/0</code> on port 22), creating an
+immediate security vulnerability, or modify an active route table and
+disconnect adjacent production databases.</p></li>
+<li><p><strong>Lack of Empirical Recovery Proof:</strong> In standard
+operations, once a fix is applied, verification is ad-hoc (e.g., an
+engineer refreshing a browser tab). There is rarely an automated
+mechanism that re-audits all dependent network rules to certify that the
+primary failure has been cleared and that no secondary regressions were
+introduced.</p></li>
+</ol>
+<hr />
+<h2 id="platform-use-cases-production-value-proposition">3. Platform Use
+Cases &amp; Production Value Proposition</h2>
+<p>CloudOps Lab addresses these enterprise challenges directly. The
+platform serves three primary organizational stakeholders: Site
+Reliability Engineers (SREs), Cloud Network Architects, and Cloud
+Security/Compliance Auditors.</p>
+<div class="MERMAID_DIAGRAM_0">
+<h3 id="primary-enterprise-use-cases">3.1 Primary Enterprise Use
+Cases</h3>
+<h4
+id="use-case-a-ingestion-and-automated-audit-of-live-aws-environments">Use
+Case A: Ingestion and Automated Audit of Live AWS Environments</h4>
+<ul>
+<li><strong>Workflow:</strong> An organization connects its AWS
+credentials (or supplies its infrastructure configuration model) to
+CloudOps Lab.</li>
+<li><strong>Platform Execution:</strong> The ingestion engine queries
+AWS EC2 and VPC APIs, reconstructing the VPC boundaries, subnet tiers,
+routing paths, and security group rule sets.</li>
+<li><strong>Outcome:</strong> The platform runs the 10-point diagnostic
+audit suite in parallel, producing an immediate status matrix
+highlighting operational health, identifying misconfigurations, and
+categorizing findings by severity (<code>CRITICAL</code>,
+<code>HIGH</code>, <code>MEDIUM</code>).</li>
+</ul>
+<h4
+id="use-case-b-pre-deployment-ipv4-cidr-validation-collision-prevention">Use
+Case B: Pre-Deployment IPv4 CIDR Validation &amp; Collision
+Prevention</h4>
+<ul>
+<li><strong>Workflow:</strong> Network architects design VPC address
+spaces prior to committing Terraform modules to production
+repositories.</li>
+<li><strong>Platform Execution:</strong> The platform evaluates proposed
+CIDR allocations against RFC 1918 standards, enforces the AWS
+5-reserved-IP rule, verifies strict subnet containment, and runs an
+<span class="math inline">\(O(N^2)\)</span> pairwise subnet intersection
+algorithm.</li>
+<li><strong>Outcome:</strong> CIDR collisions and boundary violations
+are caught and rejected prior to cloud provisioning, eliminating failed
+Terraform applies and non-routable deployments.</li>
+</ul>
+<h4
+id="use-case-c-automated-incident-response-root-cause-pinpointing">Use
+Case C: Automated Incident Response &amp; Root-Cause Pinpointing</h4>
+<ul>
+<li><strong>Workflow:</strong> A network connectivity outage occurs
+affecting public web workloads.</li>
+<li><strong>Platform Execution:</strong> The diagnostic engine scans the
+environment and feeds the findings into the deterministic RCA engine.
+The RCA engine systematically evaluates layer dependencies (ruling out
+Layer 1 CIDR, Layer 2 perimeter, and Layer 3 routing) to isolate the
+exact failing firewall rule with 100% mathematical confidence.</li>
+<li><strong>Outcome:</strong> SREs receive an instant, evidence-backed
+diagnosis with the exact resource ID, eliminating guesswork and slashing
+MTTD to under two seconds.</li>
+</ul>
+<h4
+id="use-case-d-controlled-self-healing-via-sandboxed-terraform-remediation">Use
+Case D: Controlled Self-Healing via Sandboxed Terraform Remediation</h4>
+<ul>
+<li><strong>Workflow:</strong> Following root-cause determination, the
+platform synthesizes declarative Terraform HCL code representing the
+precise patch required.</li>
+<li><strong>Platform Execution:</strong> The code diff is displayed in
+the console. The platform enforces an explicit <strong>Human-in-the-Loop
+guardrail</strong>: the operator must inspect the diff and enter the
+safety confirmation token <code>CONFIRM_REMEDIATION</code>.</li>
+<li><strong>Outcome:</strong> The patch is applied via sandboxed
+Terraform execution (<code>shell=False</code>), maintaining complete
+alignment with Infrastructure as Code practices and preventing
+unversioned console drift.</li>
+</ul>
+<h4
+id="use-case-e-empirical-post-fix-verification-compliance-archiving">Use
+Case E: Empirical Post-Fix Verification &amp; Compliance Archiving</h4>
+<ul>
+<li><strong>Workflow:</strong> After remediation is applied, the
+platform executes a comprehensive re-audit.</li>
+<li><strong>Platform Execution:</strong> All 10 diagnostic rules are
+evaluated a second time against the updated state.</li>
+<li><strong>Outcome:</strong> The platform certifies that the prior
+failing check is cleared (<code>Resolved: SG-001</code>), verifies that
+zero secondary failures remain (<code>Remaining: 0</code>), and commits
+an immutable, timestamped audit report to the relational database for
+compliance and SLA auditing.</li>
+</ul>
+<hr />
+<h2 id="platform-scope-boundaries-operational-constraints">4. Platform
+Scope Boundaries &amp; Operational Constraints</h2>
+<p>To maintain architectural focus, predictable resource consumption,
+and deterministic reliability, CloudOps Lab defines explicit operational
+boundaries:</p>
+<h3 id="in-scope-capabilities">4.1 In-Scope Capabilities</h3>
+<ul>
+<li>IPv4 Classless Inter-Domain Routing (CIDR) validation (<span
+class="math inline">\(/16\)</span> to <span
+class="math inline">\(/28\)</span> prefix masks).</li>
+<li>Automated enforcement of RFC 1918 private address ranges
+(<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>,
+<code>192.168.0.0/16</code>).</li>
+<li>Calculation of the AWS 5-reserved-IP rule across all defined subnet
+bitmasks.</li>
+<li>Modeling of AWS VPCs, Subnets (Public and Private tiers), Route
+Tables, Internet Gateways, and Security Groups.</li>
+<li>Stateful Layer 4 Security Group rule parsing (inbound/outbound
+TCP/UDP/ICMP authorization).</li>
+<li>Automated 10-point diagnostic audit catalogue execution.</li>
+<li>Multi-factor deterministic root-cause analysis with confidence
+scoring.</li>
+<li>Sandboxed HashiCorp Terraform CLI execution (<code>validate</code>,
+<code>plan</code>, <code>apply</code>).</li>
+<li>Explicit Human-in-the-Loop safety confirmation guardrails
+(<code>CONFIRM_REMEDIATION</code>).</li>
+<li>Automated post-remediation regression verification.</li>
+<li>Relational database persistence of user profiles, saved network
+topologies, and experiment audit reports.</li>
+<li>Multi-stage Docker containerization and automated GitHub Actions
+CI/CD pipeline.</li>
+<li>Production hosting on AWS EC2 in region <code>us-east-1</code> with
+unified AWS Resource Group tracking.</li>
+</ul>
+<h3
+id="out-of-scope-boundaries-guarding-against-cost-complexity-sprawl">4.2
+Out-of-Scope Boundaries (Guarding Against Cost &amp; Complexity
+Sprawl)</h3>
+<ul>
+<li><strong>NAT Gateways:</strong> AWS NAT Gateways incur a continuous
+hourly charge of approximately $0.045 per hour plus data processing
+fees. To protect cloud operational budgets, private subnets in the base
+lab model are routed locally without automated NAT Gateway
+provisioning.</li>
+<li><strong>IPv6 Dual-Stack Routing:</strong> Initial platform scope
+focuses exclusively on IPv4 CIDR mathematics and routing.</li>
+<li><strong>Transit Gateway (TGW) &amp; VPC Peering:</strong> Cross-VPC
+and hybrid interconnect analysis is deferred to future architectural
+iterations.</li>
+<li><strong>Stateless Network ACLs (NACLs):</strong> Diagnostics focus
+on stateful Layer 4 Security Groups, which represent the vast majority
+of application connectivity issues in AWS.</li>
+<li><strong>Arbitrary Shell Execution:</strong> The Terraform runner
+strictly prohibits user-provided shell scripts or unverified binary
+execution.</li>
+</ul>
+<hr />
+<h2 id="complete-technology-stack-architectural-principles">5. Complete
+Technology Stack &amp; Architectural Principles</h2>
+<p>CloudOps Lab is engineered using modern, production-grade
+technologies selected for high performance, strict typing, asynchronous
+throughput, and robust security:</p>
+<pre><code>CloudOps Lab Production Technology Stack
+├── Client Presentation: React 18, Vite 5, Semantic CSS Modules, Inter &amp; JetBrains Mono Fonts
+├── Core Backend Engine: Python 3.11, FastAPI, Pydantic v2, Starlette, Uvicorn ASGI Server
+├── Infrastructure as Code: HashiCorp Terraform CLI v1.8.5 (Sandboxed Subprocess Runner)
+├── Cloud Provider SDK: AWS Boto3 (EC2, VPC, Resource Groups, Pricing SDKs)
+├── Security &amp; Cryptography: Argon2id (argon2-cffi), HttpOnly Session Cookies, itsdangerous
+├── Relational Persistence: SQLite 3 with Foreign Key Enforcement &amp; WAL (Write-Ahead Logging)
+├── Outbound Email Engine: Python smtplib with TLS 1.3 over Gmail SMTP (Port 587)
+├── Containerization: Multi-Stage Docker Build (Node 20 Alpine Builder + Python 3.9 Slim Runtime)
+└── CI/CD Automation: GitHub Actions (Ubuntu Latest, Python 3.11, Node 20, Terraform 1.8.5)</code></pre>
+<h3 id="technology-selection-rationale">5.1 Technology Selection
+Rationale</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Architectural Tier</th>
+<th>Selected Technology</th>
+<th>Technical Justification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Frontend Framework</strong></td>
+<td>React 18 (Vite SPA)</td>
+<td>Delivers single-page application (SPA) responsiveness,
+component-level encapsulation for network nodes, and immediate
+client-side state transitions.</td>
+</tr>
+<tr>
+<td><strong>Backend REST Engine</strong></td>
+<td>FastAPI (Python 3.11)</td>
+<td>Offers high-performance asynchronous request handling (via Starlette
+and AnyIO), native data validation via Pydantic v2 schemas, and
+automatic OpenAPI documentation.</td>
+</tr>
+<tr>
+<td><strong>Network Math Engine</strong></td>
+<td>Python <code>ipaddress</code> Standard Library</td>
+<td>Provides mathematically rigorous bitwise IPv4 arithmetic, prefix
+boundary masking, and pairwise overlap collision algorithms without
+external library dependencies.</td>
+</tr>
+<tr>
+<td><strong>IaC Provisioning</strong></td>
+<td>HashiCorp Terraform CLI 1.8.5</td>
+<td>Industry standard for declarative infrastructure. Bundled directly
+into the runtime container to ensure identical execution between local
+testing and AWS EC2.</td>
+</tr>
+<tr>
+<td><strong>Cloud Integration</strong></td>
+<td>AWS Boto3 SDK</td>
+<td>The official AWS SDK for Python, providing robust API clients for
+querying VPCs, subnets, route tables, security groups, and resource
+tags.</td>
+</tr>
+<tr>
+<td><strong>Password Hashing</strong></td>
+<td>Argon2id (<code>argon2-cffi</code>)</td>
+<td>Winner of the Password Hashing Competition (PHC). Provides
+memory-hard resistance against GPU- and ASIC-based brute-force attacks,
+surpassing legacy bcrypt and PBKDF2.</td>
+</tr>
+<tr>
+<td><strong>Relational Storage</strong></td>
+<td>SQLite 3</td>
+<td>Embedded, zero-configuration ACID-compliant database engine.
+Configured with foreign key cascades and WAL mode, providing microsecond
+query latency and simple backup portability.</td>
+</tr>
+<tr>
+<td><strong>Continuous Integration</strong></td>
+<td>GitHub Actions</td>
+<td>Automatically validates code formatting
+(<code>terraform fmt</code>), runs 55 unit tests (<code>pytest</code>),
+and verifies frontend asset compilation (<code>npm run build</code>) on
+every commit.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="system-architecture-multi-tier-module-decomposition">6. System
+Architecture &amp; Multi-Tier Module Decomposition</h2>
+<p>The platform is designed according to a clean, four-tier decoupled
+architecture: Client Presentation Layer, API &amp; Orchestration Layer,
+Persistence Layer, and Cloud Infrastructure Layer.</p>
+<div class="MERMAID_DIAGRAM_1">
+<h3 id="data-flow-lifecycle">6.2 Data Flow Lifecycle</h3>
+<ol type="1">
+<li><strong>Network Definition:</strong> A user submits an IPv4 VPC
+configuration through <code>NetworkPlanner.jsx</code>.</li>
+<li><strong>Mathematical Validation:</strong>
+<code>backend/app/network.py</code> validates CIDR boundaries,
+calculates available host capacity (minus the 5 AWS-reserved IPs), and
+confirms that subnets do not intersect.</li>
+<li><strong>Session Ingestion:</strong> In
+<code>TroubleshootingWorkflow.jsx</code>, the network model is loaded
+into active session memory (<code>workflow_engine.py</code>).</li>
+<li><strong>Diagnostic Scan:</strong> <code>diagnostics.py</code> runs
+rule audits against the model or live cloud APIs, generating structured
+finding payloads.</li>
+<li><strong>RCA Synthesis:</strong> <code>rca_engine.py</code> evaluates
+finding dependencies, builds a multi-factor evidence chain, and
+calculates certainty metrics.</li>
+<li><strong>Remediation &amp; Guardrail:</strong> The workflow engine
+generates the Terraform HCL diff. The user inspects the diff and submits
+the safety token <code>CONFIRM_REMEDIATION</code>.</li>
+<li><strong>Execution &amp; Verification:</strong>
+<code>terraform_runner.py</code> applies the patch. The diagnostic suite
+executes a post-fix audit to confirm zero remaining failures.</li>
+<li><strong>Compliance Commit:</strong> <code>report_service.py</code>
+writes the certified post-mortem report to <code>experiments</code> in
+SQLite, available for Markdown and JSON export.</li>
+</ol>
+<hr />
+<h2 id="pre-deployment-network-planning-cidr-mathematics-engine">7.
+Pre-Deployment Network Planning &amp; CIDR Mathematics Engine</h2>
+<p>The Network Planning Engine (<code>backend/app/network.py</code>)
+provides pre-deployment mathematical validation for IPv4 address spaces.
+In cloud architecture, allocating invalid or colliding CIDR blocks
+causes silent routing conflicts that require extensive downtime to
+rectify once workloads are live.</p>
+<h3 id="rfc-1918-private-ipv4-address-space-invariants">7.1 RFC 1918
+Private IPv4 Address Space Invariants</h3>
+<p>CloudOps Lab enforces strict adherence to RFC 1918 private IPv4
+allocations: * <strong>Class A Block:</strong> <code>10.0.0.0</code> to
+<code>10.255.255.255</code> (<code>10.0.0.0/8</code>) * <strong>Class B
+Block:</strong> <code>172.16.0.0</code> to <code>172.31.255.255</code>
+(<code>172.16.0.0/12</code>) * <strong>Class C Block:</strong>
+<code>192.168.0.0</code> to <code>192.168.255.255</code>
+(<code>192.168.0.0/16</code>)</p>
+<p>The engine enforces AWS prefix boundaries: * <strong>Minimum VPC
+Size:</strong> <code>/28</code> (16 total IPv4 addresses). *
+<strong>Maximum VPC Size:</strong> <code>/16</code> (65,536 total IPv4
+addresses).</p>
+<h3 id="the-aws-5-reserved-ip-address-mathematical-policy">7.2 The AWS
+5-Reserved IP Address Mathematical Policy</h3>
+<p>In standard on-premises networking (RFC 1918), each subnet reserves
+exactly 2 IP addresses: the network identifier (<span
+class="math inline">\(2^0 - 1\)</span>) and the broadcast address (<span
+class="math inline">\(2^n - 1\)</span>).</p>
+<p><strong>In Amazon Web Services, exactly five IP addresses are
+automatically reserved in every subnet</strong>:</p>
+<p><span class="math display">\[\text{Usable Capacity} = 2^{(32 - P)} -
+5\]</span></p>
+<p>Where <span class="math inline">\(P\)</span> represents the CIDR
+prefix length (<span class="math inline">\(/16 \le P \le
+/28\)</span>).</p>
+<pre><code>Detailed AWS Reserved Address Mapping (Example: 10.0.1.0/24)
+─────────────────────────────────────────────────────────────────────────────
+Address Offset | Technical Role                 | Routable | AWS Function
+─────────────────────────────────────────────────────────────────────────────
+Network + 0    | 10.0.1.0 (Network ID)          | No       | Subnet boundary identifier
+Network + 1    | 10.0.1.1 (VPC Router)          | Yes      | Default gateway for subnet
+Network + 2    | 10.0.1.2 (DNS Resolver)        | Yes      | AmazonProvidedDNS server
+Network + 3    | 10.0.1.3 (AWS Future Use)      | No       | Reserved by AWS for features
+Network + 4    | 10.0.1.4 (First Usable Host)   | Yes      | First assignable compute ENI
+...            | [251 Usable Host Addresses]    | Yes      | Dynamic/Static instance IPs
+Network + 254  | 10.0.1.254 (Last Usable Host)  | Yes      | Last assignable compute ENI
+Network + 255  | 10.0.1.255 (Broadcast ID)      | No       | Subnet broadcast (Unused)
+─────────────────────────────────────────────────────────────────────────────</code></pre>
+<h3 id="pairwise-subnet-collision-detection-algorithm">7.3 Pairwise
+Subnet Collision Detection Algorithm</h3>
+<p>To prevent routing ambiguity, no two subnets within a VPC may share
+any portion of their address spaces. The engine executes a pairwise
+intersection algorithm:</p>
+<p><span class="math display">\[\forall i, j \in [1, N], \quad i \neq j
+\implies \text{Subnet}_i \cap \text{Subnet}_j = \emptyset\]</span></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Critical Code Snippet: Pairwise Overlap Collision Detection</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> check_subnet_overlaps(subnets: List[SubnetAllocation]) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(subnets)):</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(i <span class="op">+</span> <span class="dv">1</span>, <span class="bu">len</span>(subnets)):</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>            net1 <span class="op">=</span> ipaddress.ip_network(subnets[i].cidr, strict<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>            net2 <span class="op">=</span> ipaddress.ip_network(subnets[j].cidr, strict<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> net1.overlaps(net2):</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>                <span class="cf">raise</span> ValidationError(</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>                    <span class="ss">f&quot;Subnet &#39;</span><span class="sc">{</span>subnets[i]<span class="sc">.</span>name<span class="sc">}</span><span class="ss">&#39; (</span><span class="sc">{</span>net1<span class="sc">}</span><span class="ss">) overlaps with &#39;</span><span class="sc">{</span>subnets[j]<span class="sc">.</span>name<span class="sc">}</span><span class="ss">&#39; (</span><span class="sc">{</span>net2<span class="sc">}</span><span class="ss">)&quot;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>                )</span></code></pre></div>
+<p>If an operator defines <code>public-subnet</code> as
+<code>10.0.1.0/24</code> and attempts to allocate
+<code>10.0.1.128/25</code> to <code>private-subnet</code>, the engine
+detects that <code>10.0.1.128/25</code> is an internal subset of
+<code>10.0.1.0/24</code>, immediately blocking the plan before Terraform
+execution.</p>
+<hr />
+<h2 id="the-10-point-automated-diagnostic-audit-catalogue">8. The
+10-Point Automated Diagnostic Audit Catalogue</h2>
+<p>When CloudOps Lab analyzes an active or proposed AWS network, it
+invokes the <strong>Automated Diagnostic Suite</strong>
+(<code>backend/app/diagnostics.py</code>). This engine evaluates the
+infrastructure against a deterministic 10-point rule catalogue covering
+all four networking layers:</p>
+<pre><code>[Layer 1: CIDR Mathematics]
+   ├── CIDR-001: Valid RFC 1918 IPv4 CIDR Allocation
+   └── CIDR-002: Host Bits Zero Invariant Check
+[Layer 2: VPC Boundary &amp; Perimeter Gateway]
+   ├── VPC-001:  Subnet Containment &amp; Overlap Verification
+   └── IGW-001:  Internet Gateway Attachment State
+[Layer 3: Route Tables &amp; Subnet Tiers]
+   ├── ROUTE-001: Public Tier Default Route to IGW (0.0.0.0/0)
+   └── ROUTE-002: Private Tier Perimeter Isolation
+[Layer 4: Security Groups &amp; Firewalls]
+   ├── SG-001:   Web Ingress HTTPS Rule Authorization (Port 443)
+   └── SG-002:   Unrestricted SSH Access Audit (Port 22 from 0.0.0.0/0)
+[Operational Probing &amp; Interface Diagnostics]
+   ├── LIVE-001: Outbound DNS &amp; ICMP Reachability Probe
+   └── LIVE-002: Inbound TCP Handshake Probe</code></pre>
+<h3 id="diagnostic-catalogue-specification-matrix">8.1 Diagnostic
+Catalogue Specification Matrix</h3>
+<table style="width:99%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr>
+<th>Rule ID</th>
+<th>Layer</th>
+<th>Rule Name</th>
+<th>Evaluation Invariant</th>
+<th>Failure Trigger Condition</th>
+<th>Remediation Guidance</th>
+<th>Severity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>CIDR-001</code></strong></td>
+<td>Layer 1</td>
+<td>Valid RFC 1918 CIDR</td>
+<td>IPv4 address string must be valid syntax with prefix <span
+class="math inline">\(/16 \le P \le /28\)</span>.</td>
+<td>Non-standard format or prefix out of AWS bounds.</td>
+<td>Re-allocate network within RFC 1918 range
+(<code>10.0.0.0/16</code>).</td>
+<td><code>CRITICAL</code></td>
+</tr>
+<tr>
+<td><strong><code>CIDR-002</code></strong></td>
+<td>Layer 1</td>
+<td>Host Bits Zero Check</td>
+<td>Bitwise host portion of CIDR address must evaluate strictly to
+zero.</td>
+<td>Host bits set in network mask (e.g., <code>10.0.1.5/24</code>).</td>
+<td>Mask host bits to zero (e.g., change <code>10.0.1.5/24</code> to
+<code>10.0.1.0/24</code>).</td>
+<td><code>HIGH</code></td>
+</tr>
+<tr>
+<td><strong><code>VPC-001</code></strong></td>
+<td>Layer 2</td>
+<td>Subnet Containment &amp; Collision</td>
+<td>All subnets must reside inside parent VPC; zero subnets may
+intersect.</td>
+<td>Subnet out of VPC range or colliding with adjacent subnet.</td>
+<td>Adjust subnet CIDR blocks to eliminate overlap.</td>
+<td><code>CRITICAL</code></td>
+</tr>
+<tr>
+<td><strong><code>IGW-001</code></strong></td>
+<td>Perimeter</td>
+<td>IGW Attachment State</td>
+<td>Internet Gateway must exist and report state <code>attached</code>
+to VPC.</td>
+<td>Gateway state is <code>detached</code> or no gateway attached.</td>
+<td>Attach Internet Gateway to VPC using AWS API or Terraform.</td>
+<td><code>CRITICAL</code></td>
+</tr>
+<tr>
+<td><strong><code>ROUTE-001</code></strong></td>
+<td>Layer 3</td>
+<td>Public Route to IGW</td>
+<td>Route table associated with public subnet must contain
+<code>0.0.0.0/0 -&gt; igw</code>.</td>
+<td>Public subnet lacks <code>0.0.0.0/0</code> next-hop to IGW.</td>
+<td>Add <code>0.0.0.0/0</code> route pointing to IGW in route
+table.</td>
+<td><code>HIGH</code></td>
+</tr>
+<tr>
+<td><strong><code>ROUTE-002</code></strong></td>
+<td>Layer 3</td>
+<td>Private Route Isolation</td>
+<td>Private route table must NOT contain direct route to Internet
+Gateway.</td>
+<td>Private subnet has route pointing directly to IGW.</td>
+<td>Remove IGW route from private route table; isolate tier.</td>
+<td><code>MEDIUM</code></td>
+</tr>
+<tr>
+<td><strong><code>SG-001</code></strong></td>
+<td>Layer 4</td>
+<td>Ingress HTTPS Port 443</td>
+<td>Web security group must authorize inbound TCP port 443.</td>
+<td>Security group permits port 80 but omits port 443.</td>
+<td>Add inbound authorization rule for TCP port 443.</td>
+<td><code>HIGH</code></td>
+</tr>
+<tr>
+<td><strong><code>SG-002</code></strong></td>
+<td>Layer 4</td>
+<td>Unrestricted SSH Prevention</td>
+<td>Ingress rules must not allow <code>0.0.0.0/0</code> on port 22
+(SSH).</td>
+<td>Ingress rule permits SSH from <code>0.0.0.0/0</code> to all
+internet.</td>
+<td>Restrict SSH access to specific bastion host or VPN CIDR.</td>
+<td><code>HIGH</code></td>
+</tr>
+<tr>
+<td><strong><code>LIVE-001</code></strong></td>
+<td>Operational</td>
+<td>Egress Resolver Probe</td>
+<td>Target instances must be capable of resolving outbound
+DNS/ICMP.</td>
+<td>Ping or socket timeout to public resolver
+(<code>1.1.1.1</code>).</td>
+<td>Inspect egress security group rules and route table next-hop.</td>
+<td><code>MEDIUM</code></td>
+</tr>
+<tr>
+<td><strong><code>LIVE-002</code></strong></td>
+<td>Operational</td>
+<td>Inbound TCP Handshake</td>
+<td>TCP handshake to target instance port 80/443 must succeed.</td>
+<td>Inbound SYN packet rejected or timed out at ENI.</td>
+<td>Re-verify stateful firewall ingress rules and instance process.</td>
+<td><code>HIGH</code></td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Critical Code Snippet: Diagnostic Rule Evaluation Engine</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> evaluate_diagnostic_rule(rule_id: <span class="bu">str</span>, context: NetworkLabModel) <span class="op">-&gt;</span> DiagnosticFinding:</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> rule_id <span class="op">==</span> <span class="st">&quot;SG-001&quot;</span>:</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        has_https <span class="op">=</span> <span class="bu">any</span>(</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>            rule.from_port <span class="op">&lt;=</span> <span class="dv">443</span> <span class="op">&lt;=</span> rule.to_port <span class="kw">and</span> rule.protocol <span class="op">==</span> <span class="st">&quot;tcp&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> sg <span class="kw">in</span> context.security_groups</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> rule <span class="kw">in</span> sg.ingress_rules</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> DiagnosticFinding(</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>            check_id<span class="op">=</span><span class="st">&quot;SG-001&quot;</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>            status<span class="op">=</span><span class="st">&quot;PASS&quot;</span> <span class="cf">if</span> has_https <span class="cf">else</span> <span class="st">&quot;FAIL&quot;</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>            severity<span class="op">=</span><span class="st">&quot;HIGH&quot;</span> <span class="cf">if</span> <span class="kw">not</span> has_https <span class="cf">else</span> <span class="st">&quot;INFO&quot;</span>,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>            title<span class="op">=</span><span class="st">&quot;Web Ingress HTTPS Rule Authorization&quot;</span>,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>            evidence<span class="op">=</span><span class="st">&quot;Port 443 is permitted&quot;</span> <span class="cf">if</span> has_https <span class="cf">else</span> <span class="st">&quot;Inbound port 443 omitted from security group&quot;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        )</span></code></pre></div>
+<hr />
+<h2 id="deterministic-root-cause-analysis-rca-engine">9. Deterministic
+Root-Cause Analysis (RCA) Engine</h2>
+<p>Traditional log search engines and APM monitoring tools merely report
+symptoms (e.g., <em>“Application health check failed on port 443”</em>).
+In cloud networking, identifying the true root cause requires an
+<strong>evidence-based dependency elimination model</strong>.</p>
+<h3 id="the-dependency-elimination-model">9.1 The Dependency-Elimination
+Model</h3>
+<p>CloudOps Lab implements a multi-layer deterministic root-cause
+analysis algorithm (<code>backend/app/rca_engine.py</code>). The
+algorithm models cloud networking as a strict dependency graph:</p>
+<div class="MERMAID_DIAGRAM_2">
+<h3 id="evidence-chain-construction">9.2 Evidence Chain
+Construction</h3>
+<p>Rather than providing an unverified hypothesis, the RCA engine builds
+an explicit, multi-factor evidence chain: * <strong>Factor 1:</strong>
+Confirms that Layer 1 CIDR allocation is mathematically sound. *
+<strong>Factor 2:</strong> Verifies that the Internet Gateway is
+reporting an <code>attached</code> state in AWS APIs. * <strong>Factor
+3:</strong> Confirms that public route table association contains a
+valid <code>0.0.0.0/0 -&gt; igw</code> entry. * <strong>Factor
+4:</strong> Observes that check <code>SG-001</code> failed due to
+missing port 443 in <code>cloudops-lab-web-sg</code>. *
+<strong>Conclusion:</strong> Because Layers 1, 2, and 3 are healthy, the
+network path to the instance Elastic Network Interface (ENI) is fully
+functional. The outage is isolated exclusively to the stateful Layer 4
+firewall with <strong>100% Certainty</strong>.</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Critical Code Snippet: Multi-Factor RCA Evidence Formulation</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_root_cause_analysis(findings: List[DiagnosticFinding]) <span class="op">-&gt;</span> RcaAnalysisReport:</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    failed_map <span class="op">=</span> {f.check_id: f <span class="cf">for</span> f <span class="kw">in</span> findings <span class="cf">if</span> f.status <span class="kw">in</span> (<span class="st">&quot;FAIL&quot;</span>, <span class="st">&quot;ERROR&quot;</span>)}</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="st">&quot;SG-001&quot;</span> <span class="kw">in</span> failed_map <span class="kw">and</span> <span class="st">&quot;ROUTE-001&quot;</span> <span class="kw">not</span> <span class="kw">in</span> failed_map <span class="kw">and</span> <span class="st">&quot;IGW-001&quot;</span> <span class="kw">not</span> <span class="kw">in</span> failed_map:</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> RcaAnalysisReport(</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>            primary_cause_id<span class="op">=</span><span class="st">&quot;RCA-SG-MISSING-HTTPS&quot;</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>            title<span class="op">=</span><span class="st">&quot;Missing Inbound HTTPS (Port 443) Authorization&quot;</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>            confidence_score<span class="op">=</span><span class="fl">1.0</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>            certainty_level<span class="op">=</span><span class="st">&quot;DEFINITIVE&quot;</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>            evidence_chain<span class="op">=</span>[</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;Layer 1: CIDR allocation and containment invariants verified&quot;</span>,</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;Layer 2: Internet Gateway is ATTACHED to VPC boundary&quot;</span>,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;Layer 3: Default route (0.0.0.0/0 -&gt; IGW) is operational&quot;</span>,</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;Layer 4: Security group web-sg permits port 80 but omits port 443&quot;</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>            ]</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        )</span></code></pre></div>
+<hr />
+<h2
+id="declarative-infrastructure-as-code-terraform-remediation-engine">10.
+Declarative Infrastructure as Code (Terraform) Remediation Engine</h2>
+<p>A fundamental principle of modern Site Reliability Engineering is
+that <strong>production infrastructure must never be modified by manual
+clicks in a cloud console</strong>. Console changes create configuration
+drift, violate compliance tracking, and cannot be audited in version
+control.</p>
+<p>CloudOps Lab solves this by coupling automated root-cause analysis
+with <strong>declarative Terraform code generation</strong>
+(<code>backend/app/terraform_runner.py</code>).</p>
+<h3 id="synthesizing-declarative-remediation-diff">10.1 Synthesizing
+Declarative Remediation Diff</h3>
+<p>When an outage scenario (such as <code>RCA-SG-MISSING-HTTPS</code>)
+is isolated, the platform synthesizes the exact HashiCorp Terraform
+configuration patch:</p>
+<pre class="hcl"><code># Proposed Terraform Remediation: infrastructure/security.tf
+# Target Resource: aws_security_group.web_sg
++ ingress {
++   description = &quot;Allow inbound HTTPS traffic from approved sources&quot;
++   from_port   = 443
++   to_port     = 443
++   protocol    = &quot;tcp&quot;
++   cidr_blocks = [&quot;0.0.0.0/0&quot;]
++ }</code></pre>
+<h3 id="sandboxed-execution-security-architecture">10.2 Sandboxed
+Execution Security Architecture</h3>
+<p>Running infrastructure tools programmatically introduces security
+considerations. CloudOps Lab isolates Terraform execution through
+multi-layer security guardrails: 1. <strong>No Shell Invocations
+(<code>shell=False</code>):</strong> Commands are executed directly as
+process vectors (<code>["terraform", "apply", "-auto-approve"]</code>),
+completely eliminating shell injection vulnerabilities
+(<code>bash -c</code>, command concatenation, or pipes). 2.
+<strong>Process Whitelisting:</strong> The execution engine allows only
+four specific Terraform operations: <code>init</code>,
+<code>validate</code>, <code>plan</code>, and <code>apply</code>. 3.
+<strong>Execution Directory Sandboxing:</strong> Commands are strictly
+confined to the <code>infrastructure/</code> directory; access to parent
+directories or system paths is blocked. 4. <strong>Input
+Sanitization:</strong> All dynamic parameters (e.g., CIDRs, port
+numbers, resource identifiers) are validated against strict alphanumeric
+regex patterns prior to argument assembly.</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Critical Code Snippet: Sandboxed Terraform Execution</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_sandboxed_terraform(action: <span class="bu">str</span>, target_dir: <span class="bu">str</span> <span class="op">=</span> <span class="st">&quot;infrastructure&quot;</span>) <span class="op">-&gt;</span> TerraformRunResponse:</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> action <span class="kw">not</span> <span class="kw">in</span> ALLOWED_TF_ACTIONS:</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> SecurityException(<span class="ss">f&quot;Unauthorized Terraform action: </span><span class="sc">{</span>action<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    cmd <span class="op">=</span> [<span class="st">&quot;terraform&quot;</span>, action]</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> action <span class="op">==</span> <span class="st">&quot;apply&quot;</span>:</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        cmd.append(<span class="st">&quot;-auto-approve&quot;</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> subprocess.run(cmd, cwd<span class="op">=</span>target_dir, capture_output<span class="op">=</span><span class="va">True</span>, text<span class="op">=</span><span class="va">True</span>, shell<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> TerraformRunResponse(exit_code<span class="op">=</span>result.returncode, stdout<span class="op">=</span>result.stdout, stderr<span class="op">=</span>result.stderr)</span></code></pre></div>
+<hr />
+<h2 id="human-in-the-loop-safety-guardrails-access-governance">11.
+Human-in-the-Loop Safety Guardrails &amp; Access Governance</h2>
+<p>In enterprise Site Reliability Engineering, completely autonomous,
+unreviewed writes to production environments represent a severe
+operational hazard. An automated remediation agent executing without
+human validation can cause catastrophic cascading failures if it acts
+upon false positives.</p>
+<h3 id="the-human-in-the-loop-architecture">11.1 The Human-in-the-Loop
+Architecture</h3>
+<p>CloudOps Lab enforces a strict <strong>Human-in-the-Loop Safety
+Guardrail</strong> at Step 5 of the recovery pipeline:</p>
+<div class="MERMAID_DIAGRAM_3">
+<h3 id="safety-token-specification">11.2 Safety Token Specification</h3>
+<p>To apply changes to target cloud infrastructure: 1. The operator must
+inspect the green code diff, review the technical rationale, and
+evaluate the security implications. 2. The operator must explicitly type
+the required confirmation string: <span
+class="math display">\[\text{Safety Token} =
+\texttt{&quot;CONFIRM\_REMEDIATION&quot;}\]</span> 3. The backend
+validates the token string identically. Any variation (whitespace,
+incorrect casing, or empty payload) immediately rejects the request with
+HTTP 400.</p>
+<hr />
+<h2 id="the-end-to-end-7-step-self-healing-recovery-workflow">12. The
+End-to-End 7-Step Self-Healing Recovery Workflow</h2>
+<p>The signature capability of CloudOps Lab is the <strong>7-Step
+Troubleshooting &amp; Recovery Engine</strong>
+(<code>backend/app/workflow_engine.py</code>). It coordinates the entire
+lifecycle of cloud network fault handling:</p>
+<div class="MERMAID_DIAGRAM_4">
+<h3 id="detailed-workflow-state-transitions">12.1 Detailed Workflow
+State Transitions</h3>
+<h4 id="step-1-target-network-lab-model">Step 1: Target Network Lab
+Model</h4>
+<ul>
+<li><strong>Operational Goal:</strong> Ingests the baseline AWS
+architecture.</li>
+<li><strong>Component State:</strong> VPC <code>10.0.0.0/16</code>,
+attached <code>igw-0a1b2c3d4e</code>, public subnet
+(<code>10.0.1.0/24</code>), private subnet (<code>10.0.2.0/24</code>),
+and security group <code>cloudops-lab-web-sg</code>.</li>
+<li><strong>State Invariant:</strong> All 10 baseline diagnostic checks
+pass; the system verifies healthy operational state.</li>
+</ul>
+<h4 id="step-2-controlled-chaos-fault-injection">Step 2: Controlled
+Chaos Fault Injection</h4>
+<ul>
+<li><strong>Operational Goal:</strong> Injects a realistic cloud outage
+to test diagnostic observability.</li>
+<li><strong>Supported Fault Catalogue:</strong>
+<ol type="1">
+<li><code>sg_missing_https</code>: Inbound HTTPS port 443 omitted from
+web security group.</li>
+<li><code>missing_default_route</code>: Default route
+<code>0.0.0.0/0</code> removed from public route table.</li>
+<li><code>igw_detached</code>: Internet Gateway placed into detached
+state at VPC perimeter.</li>
+<li><code>subnet_overlap</code>: Identical CIDR blocks allocated across
+multiple subnets.</li>
+<li><code>invalid_cidr_boundary</code>: Non-zero host bits supplied in
+network CIDR.</li>
+</ol></li>
+</ul>
+<h4 id="step-3-diagnostic-inspection">Step 3: Diagnostic Inspection</h4>
+<ul>
+<li><strong>Operational Goal:</strong> Automatically audits the degraded
+infrastructure against the 10-point rule catalogue.</li>
+<li><strong>Output:</strong> Flags check <code>SG-001</code> with status
+<code>FAIL</code> and severity <code>HIGH</code>, recording that port
+443 is unassigned.</li>
+</ul>
+<h4 id="step-4-deterministic-root-cause-analysis">Step 4: Deterministic
+Root-Cause Analysis</h4>
+<ul>
+<li><strong>Operational Goal:</strong> Correlates findings to isolate
+the exact failure layer.</li>
+<li><strong>Output:</strong> Produces cause code
+<code>RCA-SG-MISSING-HTTPS</code> with <strong>100% confidence</strong>,
+proving that Layer 1 CIDR, Layer 2 perimeter, and Layer 3 routing are
+fully healthy.</li>
+</ul>
+<h4 id="step-5-proposed-terraform-remediation">Step 5: Proposed
+Terraform Remediation</h4>
+<ul>
+<li><strong>Operational Goal:</strong> Synthesizes declarative
+Infrastructure as Code to remediate the outage.</li>
+<li><strong>Execution:</strong> Displays HCL diff. Enforces human
+confirmation guardrail (<code>CONFIRM_REMEDIATION</code>). Upon
+validation, applies the change via sandboxed execution.</li>
+</ul>
+<h4 id="step-6-recovery-verification-empirical-proof">Step 6: Recovery
+Verification &amp; Empirical Proof</h4>
+<ul>
+<li><strong>Operational Goal:</strong> Verifies that the remediation
+cleared the failure without introducing regressions.</li>
+<li><strong>Execution:</strong> The diagnostic suite re-evaluates all 10
+checks.</li>
+<li><strong>Certification:</strong> Confirms
+<code>Resolved: SG-001</code> and <code>Remaining Failures: 0</code>,
+awarding <strong>Recovery Certified (100%)</strong>.</li>
+</ul>
+<h4 id="step-7-certified-experiment-audit-report">Step 7: Certified
+Experiment Audit Report</h4>
+<ul>
+<li><strong>Operational Goal:</strong> Archives an immutable post-mortem
+report for compliance.</li>
+<li><strong>Execution:</strong> Generates session report with
+timestamps, user identity, before/after diffs, and verification metrics.
+Writes to SQLite and exports to Markdown and JSON.</li>
+</ul>
+<hr />
+<h2 id="hop-by-hop-packet-path-tracer-cloud-resource-inventory">13.
+Hop-by-Hop Packet Path Tracer &amp; Cloud Resource Inventory</h2>
+<p>CloudOps Lab provides deep visibility into cloud traffic routing via
+the <strong>Hop-by-Hop Packet Path Tracer</strong>
+(<code>backend/app/network_model.py</code>).</p>
+<div class="MERMAID_DIAGRAM_5">
+<h3 id="sequential-hop-inspection-logic">13.1 Sequential Hop Inspection
+Logic</h3>
+<ol type="1">
+<li><strong>Hop 1 (Perimeter Gateway):</strong> Evaluates if an Internet
+Gateway is attached to the VPC. If detached, the trace halts with
+verdict <code>BLOCKED</code>.</li>
+<li><strong>Hop 2 (Layer 3 Route Table):</strong> Evaluates if a default
+route (<code>0.0.0.0/0</code>) directs ingress/egress to the gateway. If
+missing, the packet is flagged as dropped due to routing blackhole.</li>
+<li><strong>Hop 3 (Layer 4 Security Group):</strong> Evaluates stateful
+security group rules against protocol and port. If the port is
+unauthorized, the packet is flagged as blocked by security policy.</li>
+<li><strong>Hop 4 (Target Host):</strong> Upon passing Hops 1 through 3,
+the packet reaches the network interface with status
+<code>PERMITTED</code>.</li>
+</ol>
+<hr />
+<h2 id="database-schema-entity-relationship-modeling-er-diagram">14.
+Database Schema &amp; Entity-Relationship Modeling (ER Diagram)</h2>
+<p>The persistence layer uses SQLite 3 configured with foreign key
+enforcement and Write-Ahead Logging (WAL) for high concurrency and
+zero-configuration portability.</p>
+<div class="MERMAID_DIAGRAM_6">
+<hr />
+<h2 id="authentication-cryptography-session-security-architecture">15.
+Authentication, Cryptography &amp; Session Security Architecture</h2>
+<p>CloudOps Lab implements modern, defense-in-depth security across
+authentication, authorization, session persistence, and data
+transmission (<code>backend/app/security.py</code>,
+<code>backend/app/auth_service.py</code>).</p>
+<h3 id="cryptographic-password-hashing-argon2id">15.1 Cryptographic
+Password Hashing: Argon2id</h3>
+<p>In adherence to the modern cryptographic consensus and RFC 9106, the
+platform utilizes <strong>Argon2id</strong> (via
+<code>argon2-cffi</code>), the winner of the Password Hashing
+Competition. Argon2id combines resistance against side-channel cache
+attacks (from Argon2i) and high-throughput GPU/ASIC cracking arrays
+(from Argon2d).</p>
+<ul>
+<li><strong>Algorithm:</strong> Argon2id</li>
+<li><strong>Memory Cost (<span
+class="math inline">\(m\)</span>):</strong> 65,536 KiB (64 MiB)</li>
+<li><strong>Time Cost (<span class="math inline">\(t\)</span>):</strong>
+3 iterations</li>
+<li><strong>Parallelism (<span
+class="math inline">\(p\)</span>):</strong> 4 parallel execution
+lanes</li>
+<li><strong>Salt:</strong> 16 bytes of cryptographically secure
+pseudo-random entropy (<code>os.urandom</code>)</li>
+</ul>
+<p>Passwords are never logged or stored in plaintext. Password policies
+enforce length boundaries (<span class="math inline">\(12 \le
+\text{length} \le 128\)</span> characters) without arbitrary character
+constraints that encourage weak patterns.</p>
+<h3 id="server-managed-session-security">15.2 Server-Managed Session
+Security</h3>
+<p>Unlike stateless JWTs (which cannot be revoked server-side without
+complex blacklisting), CloudOps Lab utilizes <strong>secure
+server-managed sessions</strong>: * <strong>Session ID
+Generation:</strong> 64 hexadecimal characters generated via
+<code>secrets.token_hex(32)</code> providing 256 bits of entropy. *
+<strong>Cookie Delivery Parameters:</strong> * <code>HttpOnly</code>:
+Prevents client-side JavaScript access, mitigating Cross-Site Scripting
+(XSS) session theft. * <code>SameSite=Lax</code>: Defends against
+Cross-Site Request Forgery (CSRF) across external origins. *
+<code>Secure</code>: Enforced in production to guarantee transmission
+over encrypted HTTPS channels. * <strong>Session Rotation:</strong>
+Session identifiers are rotated upon successful authentication to
+eliminate session fixation vulnerabilities. * <strong>Session
+Lifetime:</strong> Enforces an absolute 12-hour session boundary with a
+30-minute idle expiration timer.</p>
+<h3 id="outbound-email-delivery-account-verification">15.3 Outbound
+Email Delivery &amp; Account Verification</h3>
+<ul>
+<li><strong>Engine:</strong> Python standard <code>smtplib</code>
+executing asynchronous transport over Gmail SMTP
+(<code>smtp.gmail.com:587</code>) using TLS 1.3 encryption.</li>
+<li><strong>Token Policy:</strong> Verification and password-reset links
+utilize single-use tokens expiring in 30 minutes, stored hashed in
+SQLite (<code>auth_tokens</code>).</li>
+</ul>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Critical Code Snippet: Argon2id Cryptographic Verification</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> argon2 <span class="im">import</span> PasswordHasher</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>ph <span class="op">=</span> PasswordHasher(time_cost<span class="op">=</span><span class="dv">3</span>, memory_cost<span class="op">=</span><span class="dv">65536</span>, parallelism<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> hash_password(plaintext: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ph.<span class="bu">hash</span>(plaintext)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> verify_password(plaintext: <span class="bu">str</span>, password_hash: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">bool</span>:</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> ph.verify(password_hash, plaintext)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span>:</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">False</span></span></code></pre></div>
+<hr />
+<h2 id="production-containerization-multi-stage-docker-architecture">16.
+Production Containerization &amp; Multi-Stage Docker Architecture</h2>
+<p>To eliminate environment divergence between local environments and
+cloud hosts, CloudOps Lab is containerized via a production
+<strong>multi-stage Dockerfile</strong> (<code>Dockerfile</code>).</p>
+<div class="MERMAID_DIAGRAM_7">
+<h3 id="multi-architecture-dynamic-binary-resolution">16.1
+Multi-Architecture Dynamic Binary Resolution</h3>
+<p>The production Dockerfile automatically queries the underlying CPU
+architecture during image build:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode dockerfile"><code class="sourceCode dockerfile"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Dynamic multi-architecture Terraform binary installation</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="kw">RUN</span> <span class="va">ARCH</span><span class="op">=</span><span class="va">$(</span><span class="ex">dpkg</span> <span class="at">--print-architecture</span><span class="va">)</span> <span class="dt">\</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">curl</span> <span class="at">-fsSL</span> <span class="st">&quot;https://releases.hashicorp.com/terraform/1.8.5/terraform_1.8.5_linux_</span><span class="va">${ARCH}</span><span class="st">.zip&quot;</span> <span class="at">-o</span> /tmp/terraform.zip <span class="dt">\</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="fu">unzip</span> /tmp/terraform.zip <span class="at">-d</span> /usr/local/bin <span class="dt">\</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> /tmp/terraform.zip <span class="dt">\</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">terraform</span> version</span></code></pre></div>
+<p>This enables seamless, native compilation on both
+<strong>ARM64</strong> (Apple Silicon M-series processors) and
+<strong>AMD64/x86_64</strong> (AWS EC2 production compute
+instances).</p>
+<h3 id="automated-docker-health-checks">16.2 Automated Docker Health
+Checks</h3>
+<p>The container includes automated health probing:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode dockerfile"><code class="sourceCode dockerfile"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">HEALTHCHECK</span> <span class="op">--interval=30s</span> <span class="op">--timeout=5s</span> <span class="op">--start-period=5s</span> <span class="op">--retries=3</span> \</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">CMD</span> <span class="ex">curl</span> <span class="at">-f</span> http://localhost:8000/health <span class="kw">||</span> <span class="bu">exit</span> 1</span></code></pre></div>
+<p>Docker polls the <code>/health</code> endpoint every 30 seconds. If
+three consecutive checks fail, Docker marks the container
+<code>unhealthy</code> and notifies the host daemon.</p>
+<hr />
+<h2 id="automated-testing-suite-continuous-integration-pipeline">17.
+Automated Testing Suite &amp; Continuous Integration Pipeline</h2>
+<p>To ensure reliability across all platform modules, CloudOps Lab
+maintains a <strong>continuous integration pipeline</strong> powered by
+GitHub Actions (<a
+href="../.github/workflows/checks.yml"><code>.github/workflows/checks.yml</code></a>).</p>
+<div class="MERMAID_DIAGRAM_8">
+<h3 id="test-suite-breakdown-55-automated-unit-integration-tests">17.1
+Test Suite Breakdown (55 Automated Unit &amp; Integration Tests)</h3>
+<p>The backend test suite (<code>backend/tests/</code>) covers all
+critical platform components: 1.
+<strong><code>test_network.py</code>:</strong> Tests bitmask boundaries,
+available host counts (<span class="math inline">\(251\)</span> usable
+hosts per <span class="math inline">\(/24\)</span>), and out-of-bounds
+prefix rejections. 2. <strong><code>test_overlap.py</code>:</strong>
+Validates pairwise subnet overlap collision detection. 3.
+<strong><code>test_diagnostics.py</code>:</strong> Evaluates all 10
+diagnostic rules under baseline, degraded, and remediated states. 4.
+<strong><code>test_rca_engine.py</code>:</strong> Asserts deterministic
+layer elimination, verifying that Layer 3 routing health isolates Layer
+4 firewall omissions with 100% confidence. 5.
+<strong><code>test_terraform_runner.py</code>:</strong> Tests sandboxed
+execution security, action allowlists, and execution output parsing. 6.
+<strong><code>test_auth_and_persisted_workflow.py</code>:</strong>
+Validates Argon2id hashing, user creation, session rotation, and
+experiment database persistence.</p>
+<hr />
+<h2 id="live-cloud-infrastructure-aws-resource-group-organization">18.
+Live Cloud Infrastructure &amp; AWS Resource Group Organization</h2>
+<p>CloudOps Lab is deployed live in Amazon Web Services in Region
+<strong><code>us-east-1</code> (US East - N. Virginia)</strong>.</p>
+<h3 id="host-compute-instance-specification">18.1 Host Compute Instance
+Specification</h3>
+<ul>
+<li><strong>Instance Identifier:</strong>
+<code>i-05deff2eb16bab7d4</code></li>
+<li><strong>Instance Type:</strong> <code>t3.micro</code> (2 vCPU, 1 GiB
+RAM)</li>
+<li><strong>Operating System:</strong> Ubuntu Linux 22.04 LTS
+(x86_64)</li>
+<li><strong>Public IPv4 Address:</strong>
+<code>44.199.232.34</code></li>
+<li><strong>Public DNS:</strong>
+<code>ec2-44-199-232-34.compute-1.amazonaws.com</code></li>
+<li><strong>Network Interface:</strong>
+<code>eni-023ba6ab9c3af7de0</code></li>
+<li><strong>Persistent Storage:</strong> 8 GiB GP3 Elastic Block Store
+(<code>vol-0b8f52992f675aef6</code>)</li>
+</ul>
+<h3 id="aws-resource-group-governance-cloudops-lab-resources">18.2 AWS
+Resource Group Governance (<code>cloudops-lab-resources</code>)</h3>
+<p>All cloud assets provisioned for CloudOps Lab are organized under a
+centralized <strong>AWS Resource Group</strong> using tag-based query
+filtering (<code>Project: CloudOpsLab</code>):</p>
+<pre><code>AWS Resource Group: cloudops-lab-resources (Region: us-east-1)
+├── AWS::EC2::Instance         -&gt; i-05deff2eb16bab7d4 (cloudops-lab-production)
+├── AWS::EC2::SecurityGroup    -&gt; sg-0d0b43a2b00e18ad1 (cloudops-lab-security-group)
+├── AWS::EC2::NetworkInterface -&gt; eni-023ba6ab9c3af7de0 (cloudops-lab-network-interface)
+└── AWS::EC2::Volume           -&gt; vol-0b8f52992f675aef6 (cloudops-lab-ebs-storage)</code></pre>
+<p>This resource grouping allows infrastructure teams to monitor compute
+health, storage metrics, firewall rules, and billing attribution from a
+single unified AWS console view:<br />
+<strong>AWS Console URL:</strong>
+<code>https://us-east-1.console.aws.amazon.com/resource-groups/group/cloudops-lab-resources?region=us-east-1</code></p>
+<hr />
+<h2 id="audit-reporting-compliance-regulatory-verification">19. Audit
+Reporting, Compliance &amp; Regulatory Verification</h2>
+<p>In enterprise cloud governance (SOC 2 Type II, ISO 27001, and the AWS
+Well-Architected Framework), all infrastructure alterations must produce
+an immutable audit trail.</p>
+<h3 id="certified-audit-report-structure">19.1 Certified Audit Report
+Structure</h3>
+<p>Upon completion of Step 7 in the Recovery Engine, CloudOps Lab
+generates an immutable audit record: * <strong>Unique Session
+Identifier:</strong> Cryptographically random session ID (e.g.,
+<code>wf-session-1793646114</code>). * <strong>Timestamp &amp;
+Attribution:</strong> Exact UTC execution timestamp and authenticated
+engineer identity (<code>ashuchaudhary112004@gmail.com</code>). *
+<strong>Degraded State Findings:</strong> Structured list of all failed
+diagnostic checks, severity levels, and raw failure evidence. *
+<strong>Root-Cause Analysis Proof:</strong> Documented RCA cause code,
+confidence percentage, and multi-factor evidence chain. *
+<strong>Remediation Code Diff:</strong> Exact Terraform HCL code applied
+to infrastructure. * <strong>Safety Confirmation Verification:</strong>
+Verification that the human confirmation guardrail token was supplied. *
+<strong>Empirical Verification Proof:</strong> Certified metric proving
+<span class="math inline">\(0\)</span> remaining failures
+post-apply.</p>
+<h3 id="export-formats">19.2 Export Formats</h3>
+<p>Reports are immediately available for export via REST API: *
+<strong>Markdown (<code>.md</code>):</strong> Formatted in GitHub
+Flavored Markdown for direct inclusion in post-incident documentation,
+Jira tickets, and GitHub pull requests
+(<code>GET /api/reports/{id}/export?format=md</code>). * <strong>JSON
+(<code>.json</code>):</strong> Machine-readable structured payload for
+ingestion into SIEM tools, Splunk, Datadog, or external compliance
+engines (<code>GET /api/reports/{id}/export?format=json</code>).</p>
+<hr />
+<h2 id="operational-runbook-administrator-guide">20. Operational Runbook
+&amp; Administrator Guide</h2>
+<h3 id="localhost-startup-execution-runbook">20.1 Localhost Startup
+&amp; Execution Runbook</h3>
+<p>To launch CloudOps Lab locally on a developer or analyst machine:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Clone the production repository</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/a7hu-15/cloud_ops.git</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> cloud-ops</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Initialize Python virtual environment &amp; dependencies</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> venv .venv</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> backend/requirements.txt</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Build optimized frontend production bundle</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> frontend <span class="kw">&amp;&amp;</span> <span class="ex">npm</span> install <span class="kw">&amp;&amp;</span> <span class="ex">npm</span> run build <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> ..</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Launch unified backend &amp; frontend server on port 8080</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv/bin/uvicorn</span> backend.app.main:app <span class="at">--host</span> 127.0.0.1 <span class="at">--port</span> 8080</span></code></pre></div>
+<p>Open <strong><code>http://localhost:8080</code></strong> in your
+browser.</p>
+<h3 id="stopping-the-local-server">20.2 Stopping the Local Server</h3>
+<ul>
+<li><p>To stop the active server in terminal: Press
+<code>Ctrl + C</code>.</p></li>
+<li><p>To stop background instances running on port 8080:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="bu">kill</span> <span class="at">-9</span> <span class="va">$(</span><span class="ex">lsof</span> <span class="at">-t</span> <span class="at">-i</span> :8080<span class="va">)</span></span></code></pre></div></li>
+</ul>
+<h3 id="executing-the-automated-test-suite">20.3 Executing the Automated
+Test Suite</h3>
+<p>To verify all 55 unit and integration tests locally:</p>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="va">PYTHONPATH</span><span class="op">=</span>. <span class="ex">pytest</span> backend/tests/ <span class="at">-v</span></span></code></pre></div>
+<h3 id="docker-container-execution">20.4 Docker Container Execution</h3>
+<p>To launch via containerized Docker daemon:</p>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">-d</span> <span class="at">--name</span> cloudops-lab <span class="at">-p</span> 8080:8000 cloudops-lab:latest</span></code></pre></div>
+<hr />
+<h2 id="references-industry-standards-citations">21. References,
+Industry Standards &amp; Citations</h2>
+<ol type="1">
+<li><strong>Internet Engineering Task Force (IETF):</strong>
+<ul>
+<li><em>RFC 1918:</em> Address Allocation for Private Internets (Y.
+Rekhter, B. Moskowitz, D. Karrenberg, G. J. de Groot, E. Lear, February
+1996).</li>
+<li><em>RFC 791:</em> Internet Protocol - DARPA Internet Program
+Protocol Specification (J. Postel, September 1981).</li>
+<li><em>RFC 9106:</em> Argon2 Memory-Hard Function for Password Hashing
+and Proof-of-Work Applications (A. Biryukov, D. Dinu, D. Khovratovich,
+S. Josefsson, February 2021).</li>
+<li><em>RFC 4632:</em> Classless Inter-domain Routing (CIDR): The
+Internet Address Assignment and Aggregation Plan (V. Fuller, T. Li,
+August 2006).</li>
+</ul></li>
+<li><strong>Amazon Web Services (AWS) Architectural
+Documentation:</strong>
+<ul>
+<li><em>AWS Well-Architected Framework:</em> Reliability Pillar (Amazon
+Web Services, Inc., 2024).</li>
+<li><em>AWS Well-Architected Framework:</em> Security Pillar (Amazon Web
+Services, Inc., 2024).</li>
+<li><em>Amazon Virtual Private Cloud User Guide:</em> VPCs and Subnets
+Subnet Sizing and Reserved IP Addresses (AWS Documentation, 2026).</li>
+<li><em>Amazon EC2 Security Groups User Guide:</em> Security Group
+Ingress and Egress Rule Protocols (AWS Documentation, 2026).</li>
+<li><em>Boto3 Documentation:</em> Amazon Web Services SDK for Python
+(v1.34+).</li>
+</ul></li>
+<li><strong>Infrastructure as Code &amp; Site Reliability Engineering
+Standards:</strong>
+<ul>
+<li><em>HashiCorp Terraform Documentation:</em> Terraform Language
+Specification, State Management, and CLI Execution Internals (HashiCorp,
+2024).</li>
+<li><em>Site Reliability Engineering:</em> How Google Runs Production
+Systems (B. Beyer, C. Jones, J. Petoff, N. R. Murphy, O’Reilly Media,
+2016).</li>
+<li><em>The Site Reliability Workbook:</em> Practical Ways to Implement
+SRE (B. Beyer, N. R. Murphy, D. K. Rensin, K. Kawahara, S. Thorne,
+O’Reilly Media, 2018).</li>
+</ul></li>
+<li><strong>National Institute of Standards and Technology
+(NIST):</strong>
+<ul>
+<li><em>NIST Special Publication 800-145:</em> The NIST Definition of
+Cloud Computing (P. Mell, T. Grance, September 2011).</li>
+<li><em>NIST Special Publication 800-53 (Rev. 5):</em> Security and
+Privacy Controls for Information Systems and Organizations (Access
+Control &amp; Incident Response Families).</li>
+</ul></li>
+<li><strong>Open Source Core Specifications:</strong>
+<ul>
+<li><em>FastAPI:</em> High-Performance Web Framework for Python
+(Sebastián Ramírez, 2018–2026).</li>
+<li><em>React:</em> A JavaScript Library for Building User Interfaces
+(Meta Open Source, 2013–2026).</li>
+<li><em>SQLite:</em> An In-Process Relational Database Engine (D.
+Richard Hipp, 2000–2026).</li>
+</ul></li>
+</ol>
+<hr />
+<p><em>End of Comprehensive Technical Report — CloudOps Lab Systems
+Architecture Specification</em></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>
